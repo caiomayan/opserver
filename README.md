@@ -1,2 +1,2 @@
-# OpServer 
-O OpServer é uma plataforma dedicada à criação, organização e aluguel de servidores personalizados, inicialmente, em Counter-Strike 2. Oferecerá recursos de cadastro de equipes, preparação de campeonatos, além de possibilitar aluguéis de servidores e oferecer benefícios de assinatura VIP para preparação e evolução dos jogadores.
+## OpServer
+![Logotipo do projeto](https://github.com/caiomayan/OpServer/blob/main/img/0b5fecd7ea7e9f0dc0ec6c4c64d5f904.jpg?raw=true)
