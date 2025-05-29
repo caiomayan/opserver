@@ -1,2 +1,2 @@
 ## OpServer
-![Logotipo do projeto](https://github.com/caiomayan/OpServer/blob/main/public/whitelogo.jpg?raw=true)
+![Logotipo do projeto](https://github.com/caiomayan/OpServer/blob/main/public/img/preview.png?raw=true)
