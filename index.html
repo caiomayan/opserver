@@ -17,12 +17,13 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
+    <script src="./src/transitions.js" defer></script>
   </head>
   <body
-    class="bg-white font-['Inter'] antialiased h-screen flex items-center justify-center overflow-hidden"
+    class="bg-white font-['Inter'] antialiased h-screen flex items-center justify-center overflow-hidden opacity-0 transition-opacity duration-300"
   >
     <div class="relative">
-      <a href="home/" class="block">
+      <a href="home/" class="block" data-transition>
         <img
           src="./public/img/transparentlogo.png"
           alt="OpServer Logo"
