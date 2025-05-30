@@ -5,7 +5,6 @@ function handlePageTransitions() {
     // Make sure the page fades in properly
     setTimeout(function() {
       document.body.classList.add('opacity-100');
-      isPageLoaded = true;
     }, 50);
   }
   
@@ -16,9 +15,25 @@ function handlePageTransitions() {
       event.preventDefault();
       var href = this.getAttribute('href');
       
-
-      sessionStorage.setItem('lastPage', window.location.href);
+      // Se o href for # ou #alguma-coisa, apenas animar sem navegar
+      if (href.startsWith('#')) {
+        // Criar um efeito de clique sem navegação
+        document.body.classList.remove('opacity-100');
+        
+        setTimeout(function() {
+          document.body.classList.add('opacity-100');
+        }, 300);
+        return;
+      }
       
+      // Para links normais em ambiente de produção
+      if (window.location.pathname.includes('/dist/') || 
+          document.querySelector('script[crossorigin]')) {
+        window.open(href, '_blank');
+        return;
+      }
+      
+      // Caso contrário, usar a transição normal
       document.body.classList.remove('opacity-100');
       
       setTimeout(function() {
