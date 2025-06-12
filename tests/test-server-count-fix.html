@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Server Count Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .status-dot.online { background: #22c55e; }
+        .status-dot.offline { background: #ef4444; }
+        .status-dot.unknown { background: #6b7280; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .server-count {
+            font-size: 48px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+        .server-count.zero {
+            color: #6b7280;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        
+        .log {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste de Correção - Contagem de Servidores</h1>
+        
+        <div class="test-section">
+            <h2>Teste de Detecção de IP</h2>
+            <div id="ip-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Simulação do Status do Servidor</h2>
+            <div class="server-status">
+                <span class="server-count" id="count-display">00</span>
+                <span>Servidores Online</span>
+                <div class="status-dot unknown" id="status-dot"></div>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <button onclick="simulateUnknownStatus()">Simular VPN/Unknown</button>
+                <button onclick="simulateOnlineStatus()">Simular Online</button>
+                <button onclick="simulateOfflineStatus()">Simular Offline</button>
+                <button onclick="testCurrentServerIP()">Testar IP Atual (26.115.124.39)</button>
+            </div>
+            
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import CS2ServerStatus para testar
+        import { CS2ServerStatus } from './src/cs2-server-status.js';
+        
+        let serverStatus;
+        let onlineServers = 0;
+        
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${time}] ${message}<br>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateServerCount(count) {
+            const countDisplay = document.getElementById('count-display');
+            const formattedCount = count.toString().padStart(2, '0');
+            countDisplay.textContent = formattedCount;
+            countDisplay.className = count > 0 ? 'server-count' : 'server-count zero';
+            log(`Contador atualizado para: ${formattedCount}`);
+        }
+        
+        function updateStatusDot(status) {
+            const statusDot = document.getElementById('status-dot');
+            statusDot.className = `status-dot ${status}`;
+            log(`Status dot atualizado para: ${status}`);
+        }
+        
+        window.simulateUnknownStatus = function() {
+            onlineServers = 0;
+            updateServerCount(onlineServers);
+            updateStatusDot('unknown');
+            log('✅ Simulação VPN/Unknown: 0 servidores, status unknown');
+        };
+        
+        window.simulateOnlineStatus = function() {
+            onlineServers = 1;
+            updateServerCount(onlineServers);
+            updateStatusDot('online');
+            log('✅ Simulação Online: 1 servidor, status online');
+        };
+        
+        window.simulateOfflineStatus = function() {
+            onlineServers = 0;
+            updateServerCount(onlineServers);
+            updateStatusDot('offline');
+            log('✅ Simulação Offline: 0 servidores, status offline');
+        };
+        
+        window.testCurrentServerIP = function() {
+            if (serverStatus) {
+                const isPrivate = serverStatus.isPrivateNetworkIP('26.115.124.39');
+                log(`🔍 IP 26.115.124.39 é privado/VPN? ${isPrivate ? 'SIM' : 'NÃO'}`);
+                
+                if (isPrivate) {
+                    log('❌ ERRO: IP público sendo detectado como VPN!');
+                    simulateUnknownStatus();
+                } else {
+                    log('✅ CORRETO: IP público reconhecido corretamente');
+                    simulateOnlineStatus();
+                }
+            }
+        };
+        
+        // Testar diferentes IPs
+        function testIPDetection() {
+            const testIPs = [
+                { ip: '26.115.124.39', expected: false, desc: 'IP público atual do servidor' },
+                { ip: '26.0.123.45', expected: true, desc: 'Radmin VPN 26.0.x.x' },
+                { ip: '26.1.123.45', expected: true, desc: 'Radmin VPN 26.1.x.x' },
+                { ip: '10.0.0.1', expected: true, desc: 'IP privado 10.x.x.x' },
+                { ip: '192.168.1.1', expected: true, desc: 'IP privado 192.168.x.x' },
+                { ip: '8.8.8.8', expected: false, desc: 'IP público Google DNS' }
+            ];
+            
+            const ipTestsContainer = document.getElementById('ip-tests');
+            
+            testIPs.forEach(test => {
+                if (serverStatus) {
+                    const isPrivate = serverStatus.isPrivateNetworkIP(test.ip);
+                    const isCorrect = isPrivate === test.expected;
+                    
+                    const resultDiv = document.createElement('div');
+                    resultDiv.style.margin = '5px 0';
+                    resultDiv.style.padding = '5px';
+                    resultDiv.style.borderRadius = '3px';
+                    resultDiv.style.background = isCorrect ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                    
+                    resultDiv.innerHTML = `
+                        <strong>${test.ip}</strong> - ${test.desc}<br>
+                        Esperado: ${test.expected ? 'VPN/Privado' : 'Público'} | 
+                        Resultado: ${isPrivate ? 'VPN/Privado' : 'Público'} 
+                        ${isCorrect ? '✅' : '❌'}
+                    `;
+                    
+                    ipTestsContainer.appendChild(resultDiv);
+                    
+                    log(`${isCorrect ? '✅' : '❌'} ${test.ip}: ${isPrivate ? 'VPN/Privado' : 'Público'}`);
+                }
+            });
+        }
+        
+        // Inicializar quando carregar
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Iniciando testes...');
+            
+            try {
+                serverStatus = new CS2ServerStatus({ DEBUG_MODE: true });
+                log('✅ CS2ServerStatus carregado');
+                
+                // Aguardar um pouco para configuração carregar
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                testIPDetection();
+                simulateUnknownStatus(); // Começar com estado correto
+                
+                log('✅ Testes inicializados');
+            } catch (error) {
+                log(`❌ Erro ao carregar: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

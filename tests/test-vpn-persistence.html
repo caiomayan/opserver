@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Correção VPN Main Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">🔧 Teste: Correção VPN que Desaparece</h1>
+        
+        <!-- Status do Teste -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Status do Teste</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-gray-700 rounded p-4 text-center">
+                    <h4 class="font-medium mb-2">Sistema Carregado</h4>
+                    <div id="system-status" class="text-sm">⏳ Verificando...</div>
+                </div>
+                <div class="bg-gray-700 rounded p-4 text-center">
+                    <h4 class="font-medium mb-2">VPN Detectado</h4>
+                    <div id="vpn-detection-status" class="text-sm">⏳ Aguardando...</div>
+                </div>
+                <div class="bg-gray-700 rounded p-4 text-center">
+                    <h4 class="font-medium mb-2">Indicador Persistente</h4>
+                    <div id="persistence-status" class="text-sm">⏳ Monitorando...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Simulação da Página Principal -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Simulação Main Page</h2>
+            
+            <!-- Elementos iguais aos da main.html -->
+            <div class="text-center">
+                <div id="server-count-display" class="text-6xl font-bold text-green-400 mb-4">01</div>
+                <div class="text-sm text-gray-400 mb-2">Servidores Online</div>
+                <div class="mt-6 flex justify-center">
+                    <div id="main-server-status-dot" class="w-2 h-2 bg-gray-400 rounded-full transition-colors duration-300"></div>
+                </div>
+                
+                <!-- VPN Indicator - exato como na main.html -->
+                <div id="main-vpn-indicator" class="mt-4 flex items-center justify-center space-x-1 text-xs text-amber-500 opacity-0 transition-opacity duration-300" style="display: none;">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>Servidor VPN</span>
+                </div>
+                
+                <!-- Dados de debug -->
+                <div class="mt-4 text-xs text-gray-400">
+                    <div>Estado Indicador: <span id="indicator-state">Oculto</span></div>
+                    <div>Attribute VPN: <span id="vpn-attribute">Não definido</span></div>
+                    <div>Último Status: <span id="last-status">Nenhum</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controles de Teste -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🎮 Controles de Teste</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <button id="test-vpn-detection" class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded">
+                    🔌 Simular VPN
+                </button>
+                <button id="test-status-updates" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">
+                    📡 Simular Updates
+                </button>
+                <button id="test-persistence" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded">
+                    ⏰ Teste Persistência
+                </button>
+                <button id="reset-test" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">
+                    🔄 Reset
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <div id="test-result" class="text-lg font-semibold">⏳ Escolha um teste para iniciar</div>
+            </div>
+        </div>
+        
+        <!-- Log de Monitoramento -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Log de Monitoramento</h2>
+            <div id="monitoring-log" class="bg-black rounded p-4 font-mono text-xs text-green-400 h-48 overflow-y-auto whitespace-pre-wrap"></div>
+            <div class="mt-2 text-center">
+                <button id="clear-log" class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm">Limpar Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts necessários -->
+    <script src="./src/server-cache.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+    
+    <script>
+        let monitoringLog = [];
+        let monitoringInterval = null;
+        let testCount = 0;
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            monitoringLog.push(logEntry);
+            
+            const logElement = document.getElementById('monitoring-log');
+            logElement.textContent = monitoringLog.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function updateIndicatorStatus() {
+            const indicator = document.getElementById('main-vpn-indicator');
+            const isVisible = indicator.style.display === 'flex';
+            const opacity = indicator.style.opacity;
+            const vpnAttribute = indicator.getAttribute('data-vpn-detected');
+            
+            document.getElementById('indicator-state').textContent = isVisible ? `Visível (opacity: ${opacity})` : 'Oculto';
+            document.getElementById('vpn-attribute').textContent = vpnAttribute || 'Não definido';
+            
+            return isVisible;
+        }
+        
+        function startMonitoring() {
+            if (monitoringInterval) return;
+            
+            log('🔍 Iniciando monitoramento do indicador VPN...');
+            
+            monitoringInterval = setInterval(() => {
+                const isVisible = updateIndicatorStatus();
+                const timestamp = new Date().toLocaleTimeString();
+                
+                // Log só se houve mudança de estado
+                const lastState = window.lastIndicatorState;
+                if (lastState !== isVisible) {
+                    log(`📊 Indicador VPN ${isVisible ? 'VISÍVEL' : 'OCULTO'} às ${timestamp}`);
+                    window.lastIndicatorState = isVisible;
+                }
+            }, 1000);
+        }
+        
+        function stopMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                log('⏹️ Monitoramento parado');
+            }
+        }
+        
+        // Teste de detecção VPN
+        document.getElementById('test-vpn-detection').addEventListener('click', async () => {
+            log('🔌 TESTE: Simulando detecção VPN...');
+            document.getElementById('test-result').innerHTML = '<span class="text-blue-400">🔄 Testando detecção VPN...</span>';
+            
+            try {
+                // Check if system is available
+                if (!window.cs2ServerStatus) {
+                    throw new Error('CS2ServerStatus não disponível');
+                }
+                
+                // Force VPN detection
+                const vpnData = {
+                    status: 'vpn',
+                    name: 'A GREAT CHAOS 01',
+                    isVpnServer: true
+                };
+                
+                log('1. Chamando updateVpnIndicators...');
+                window.cs2ServerStatus.updateVpnIndicators(vpnData);
+                
+                log('2. Disparando evento vpnServerDetected...');
+                document.dispatchEvent(new CustomEvent('vpnServerDetected', { detail: vpnData }));
+                
+                log('3. Disparando evento serverStatusUpdate...');
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: vpnData }));
+                
+                // Wait and check
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const isVisible = updateIndicatorStatus();
+                
+                if (isVisible) {
+                    document.getElementById('test-result').innerHTML = '<span class="text-green-400">✅ VPN detectado e indicador ativo</span>';
+                    document.getElementById('vpn-detection-status').innerHTML = '<span class="text-green-400">✅ Detectado</span>';
+                    log('✅ SUCESSO: Indicador VPN ativado');
+                } else {
+                    document.getElementById('test-result').innerHTML = '<span class="text-red-400">❌ Falhou: Indicador não apareceu</span>';
+                    log('❌ FALHA: Indicador VPN não foi ativado');
+                }
+                
+            } catch (error) {
+                log(`❌ ERRO: ${error.message}`);
+                document.getElementById('test-result').innerHTML = `<span class="text-red-400">❌ Erro: ${error.message}</span>`;
+            }
+        });
+        
+        // Teste de múltiplas atualizações
+        document.getElementById('test-status-updates').addEventListener('click', async () => {
+            log('📡 TESTE: Simulando múltiplas atualizações de status...');
+            document.getElementById('test-result').innerHTML = '<span class="text-blue-400">🔄 Testando atualizações múltiplas...</span>';
+            
+            try {
+                if (!window.cs2ServerStatus) {
+                    throw new Error('CS2ServerStatus não disponível');
+                }
+                
+                // First: VPN detection
+                const vpnData = { status: 'vpn', name: 'A GREAT CHAOS 01', isVpnServer: true };
+                log('1. Enviando status VPN...');
+                window.cs2ServerStatus.updateVpnIndicators(vpnData);
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: vpnData }));
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Second: Unknown status (this used to hide the indicator)
+                const unknownData = { status: 'unknown', name: 'A GREAT CHAOS 01' };
+                log('2. Enviando status unknown (teste crítico)...');
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: unknownData }));
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Third: Checking status
+                const checkingData = { status: 'checking', name: 'A GREAT CHAOS 01' };
+                log('3. Enviando status checking...');
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: checkingData }));
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Check final state
+                const isVisible = updateIndicatorStatus();
+                
+                if (isVisible) {
+                    document.getElementById('test-result').innerHTML = '<span class="text-green-400">✅ Indicador persistiu através das atualizações</span>';
+                    document.getElementById('persistence-status').innerHTML = '<span class="text-green-400">✅ Persistente</span>';
+                    log('✅ SUCESSO: Indicador VPN permaneceu visível');
+                } else {
+                    document.getElementById('test-result').innerHTML = '<span class="text-red-400">❌ Indicador desapareceu durante atualizações</span>';
+                    document.getElementById('persistence-status').innerHTML = '<span class="text-red-400">❌ Não persistente</span>';
+                    log('❌ FALHA: Indicador VPN desapareceu');
+                }
+                
+            } catch (error) {
+                log(`❌ ERRO: ${error.message}`);
+                document.getElementById('test-result').innerHTML = `<span class="text-red-400">❌ Erro: ${error.message}</span>`;
+            }
+        });
+        
+        // Teste de persistência ao longo do tempo
+        document.getElementById('test-persistence').addEventListener('click', async () => {
+            log('⏰ TESTE: Verificando persistência ao longo do tempo...');
+            document.getElementById('test-result').innerHTML = '<span class="text-blue-400">🔄 Testando persistência (30s)...</span>';
+            
+            try {
+                if (!window.cs2ServerStatus) {
+                    throw new Error('CS2ServerStatus não disponível');
+                }
+                
+                // Activate VPN
+                const vpnData = { status: 'vpn', name: 'A GREAT CHAOS 01', isVpnServer: true };
+                window.cs2ServerStatus.updateVpnIndicators(vpnData);
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: vpnData }));
+                
+                log('VPN ativado, monitorando por 30 segundos...');
+                
+                let checks = 0;
+                let visibleChecks = 0;
+                
+                const persistenceTest = setInterval(() => {
+                    checks++;
+                    const isVisible = updateIndicatorStatus();
+                    
+                    if (isVisible) {
+                        visibleChecks++;
+                    }
+                    
+                    log(`Check ${checks}/30: Indicador ${isVisible ? 'VISÍVEL' : 'OCULTO'}`);
+                    
+                    // Send random status updates to test persistence
+                    const statuses = ['unknown', 'checking', 'vpn'];
+                    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                    const testData = { status: randomStatus, name: 'A GREAT CHAOS 01' };
+                    
+                    if (randomStatus !== 'vpn') {
+                        window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: testData }));
+                    }
+                    
+                    if (checks >= 30) {
+                        clearInterval(persistenceTest);
+                        
+                        const persistenceRate = (visibleChecks / checks) * 100;
+                        
+                        if (persistenceRate >= 90) {
+                            document.getElementById('test-result').innerHTML = '<span class="text-green-400">✅ Indicador altamente persistente (' + persistenceRate.toFixed(1) + '%)</span>';
+                            document.getElementById('persistence-status').innerHTML = '<span class="text-green-400">✅ Altamente persistente</span>';
+                            log(`✅ SUCESSO: Persistência de ${persistenceRate.toFixed(1)}%`);
+                        } else {
+                            document.getElementById('test-result').innerHTML = '<span class="text-yellow-400">⚠️ Persistência moderada (' + persistenceRate.toFixed(1) + '%)</span>';
+                            document.getElementById('persistence-status').innerHTML = '<span class="text-yellow-400">⚠️ Moderada</span>';
+                            log(`⚠️ AVISO: Persistência de apenas ${persistenceRate.toFixed(1)}%`);
+                        }
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ ERRO: ${error.message}`);
+                document.getElementById('test-result').innerHTML = `<span class="text-red-400">❌ Erro: ${error.message}</span>`;
+            }
+        });
+        
+        // Reset
+        document.getElementById('reset-test').addEventListener('click', () => {
+            log('🔄 Resetando teste...');
+            
+            const indicator = document.getElementById('main-vpn-indicator');
+            indicator.style.display = 'none';
+            indicator.style.opacity = '0';
+            indicator.removeAttribute('data-vpn-detected');
+            
+            document.getElementById('test-result').textContent = '⏳ Teste resetado';
+            document.getElementById('vpn-detection-status').innerHTML = '<span class="text-gray-400">⏳ Aguardando...</span>';
+            document.getElementById('persistence-status').innerHTML = '<span class="text-gray-400">⏳ Monitorando...</span>';
+            
+            updateIndicatorStatus();
+            log('✅ Reset completo');
+        });
+        
+        // Clear log
+        document.getElementById('clear-log').addEventListener('click', () => {
+            monitoringLog = [];
+            document.getElementById('monitoring-log').textContent = '';
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Teste de correção VPN iniciado');
+            updateIndicatorStatus();
+            startMonitoring();
+            
+            // Check system availability
+            setTimeout(() => {
+                if (window.cs2ServerStatus) {
+                    log('✅ CS2ServerStatus disponível');
+                    document.getElementById('system-status').innerHTML = '<span class="text-green-400">✅ Disponível</span>';
+                } else {
+                    log('❌ CS2ServerStatus não disponível');
+                    document.getElementById('system-status').innerHTML = '<span class="text-red-400">❌ Não disponível</span>';
+                }
+            }, 1500);
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopMonitoring();
+        });
+    </script>
+</body>
+</html>

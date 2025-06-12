@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conectividade do Servidor CS2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">🔍 Teste de Conectividade do Servidor CS2</h1>
+        
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Informações do Servidor</h2>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div><strong>IP:</strong> 26.115.124.39</div>
+                <div><strong>Porta:</strong> 27015</div>
+                <div><strong>Steam API Key:</strong> 1270A62C...F0BD</div>
+                <div><strong>Método:</strong> Steam Web API</div>
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Controles de Teste</h2>            <div class="space-x-4 mb-6">
+                <button id="test-direct" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-medium">
+                    🌐 Testar API Direta
+                </button>
+                <button id="test-proxy" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-medium">
+                    🔄 Testar com Proxy
+                </button>
+                <button id="test-vpn" class="bg-orange-600 hover:bg-orange-700 px-6 py-3 rounded-lg font-medium">
+                    🔌 Servidor VPN
+                </button>
+                <button id="test-both" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-medium">
+                    🚀 Testar Todos
+                </button>
+            </div>
+            
+            <div id="status" class="text-center text-gray-400">
+                Clique em um botão para testar a conectividade
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Resultado do Teste</h2>
+            <div id="result" class="space-y-4">
+                <div class="text-gray-400">Nenhum teste executado ainda</div>
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Log de Debug</h2>
+            <div id="console-log" class="bg-black/30 border border-white/20 rounded p-4 h-64 overflow-y-auto text-xs font-mono"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Override console para mostrar na UI
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToLog(message, type = 'log') {
+            const logDiv = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'text-red-400' : type === 'warn' ? 'text-yellow-400' : 'text-green-400';
+            logDiv.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog(args.join(' '), 'warn');
+        };
+
+        // Importar o teste
+        const { SimpleServerTest } = await import('./src/server-test.js');
+        const tester = new SimpleServerTest();
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function updateResult(data) {
+            const resultDiv = document.getElementById('result');
+            const status = data.status === 'online' ? '🟢 ONLINE' : '🔴 OFFLINE';
+            const statusColor = data.status === 'online' ? 'text-green-400' : 'text-red-400';
+            
+            resultDiv.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div><strong>Status:</strong> <span class="${statusColor}">${status}</span></div>
+                    <div><strong>Nome:</strong> ${data.name}</div>
+                    <div><strong>Mapa:</strong> ${data.map}</div>
+                    <div><strong>Jogadores:</strong> ${data.players.current}/${data.players.max}</div>
+                    <div><strong>Modo:</strong> ${data.gameMode}</div>
+                    <div><strong>Ping:</strong> ${data.ping ? data.ping + 'ms' : 'N/A'}</div>
+                </div>
+                ${data.error ? `<div class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded text-red-300 text-sm"><strong>Erro:</strong> ${data.error}</div>` : ''}
+            `;
+        }
+
+        // Event listeners
+        document.getElementById('test-direct').addEventListener('click', async () => {
+            updateStatus('🔄 Testando conexão direta com Steam API...');
+            const result = await tester.testServerConnectivity();
+            updateResult(result);
+            updateStatus('✅ Teste direto concluído');
+        });
+
+        document.getElementById('test-proxy').addEventListener('click', async () => {
+            updateStatus('🔄 Testando conexão via proxy CORS...');
+            const result = await tester.testWithProxy();
+            updateResult(result);
+            updateStatus('✅ Teste com proxy concluído');
+        });        document.getElementById('test-vpn').addEventListener('click', async () => {
+            updateStatus('🔌 Testando servidor VPN...');
+            const result = await tester.testVpnServer();
+            updateResult(result);
+            updateStatus('✅ Teste VPN concluído');
+        });
+
+        document.getElementById('test-both').addEventListener('click', async () => {
+            updateStatus('🔄 Testando todos os métodos...');
+            
+            // Primeiro teste direto
+            console.log('--- TESTE 1: CONEXÃO DIRETA ---');
+            let result = await tester.testServerConnectivity();
+            
+            // Se falhar, tenta com proxy
+            if (result.status === 'offline' && result.error) {
+                console.log('--- TESTE 2: CONEXÃO VIA PROXY ---');
+                result = await tester.testWithProxy();
+            }
+            
+            // Se ainda assim falhar, usar modo VPN
+            if (result.status === 'offline') {
+                console.log('--- TESTE 3: MODO SERVIDOR VPN ---');
+                result = await tester.testVpnServer();
+            }
+            
+            updateResult(result);
+            updateStatus('✅ Todos os testes concluídos');
+        });
+
+        console.log('🚀 Página de teste carregada. Servidor: 26.115.124.39:27015');
+    </script>
+</body>
+</html>

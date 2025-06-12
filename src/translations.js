@@ -55,17 +55,20 @@ class TranslationSystem {
         
         // Servers Section (Nova página)
         'servers.title': 'NOSSOS SERVIDORES',
-        'servers.subtitle': 'Informações detalhadas sobre todos os nossos servidores Counter-Strike 2',
-        'servers.server.title': 'A GREAT CHAOS 01',
-        'servers.server.status': 'ONLINE',
+        'servers.subtitle': 'Informações detalhadas sobre todos os nossos servidores',        'servers.server.title': 'A GREAT CHAOS 01',
         'servers.server.map': 'Mapa',
         'servers.server.players': 'Jogadores',
         'servers.server.mode': 'Modo',
         'servers.server.region': 'Região',
+        'servers.server.latency': 'Latência',
         'servers.server.connect': 'Conectar via Steam',
-        'servers.server.ip': 'IP do Servidor:',
-        'servers.server.copy': 'Copiar IP',
-        'servers.server.toggle': 'Mostrar/Ocultar IP',        'servers.features.title': 'DESTAQUES',
+        'servers.server.ip': 'IP do Servidor:',        'servers.server.copy': 'Copiar IP',
+        'servers.server.toggle': 'Mostrar/Ocultar IP',
+        'servers.map.current': 'MAPA ATUAL',
+        'servers.map.loading': 'Carregando informações...',        'servers.status.online': 'ONLINE',
+        'servers.status.offline': 'OFFLINE', 
+        'servers.status.unknown': 'DESCONHECIDO',
+        'servers.status.vpn': 'SERVIDOR VPN','servers.features.title': 'DESTAQUES',
         'servers.feature1': '24/7 (em breve)',
         'servers.feature2': '128-tickrate',
         'servers.feature3': 'Plugins de anti-cheat',
@@ -85,13 +88,18 @@ class TranslationSystem {
         'footer.privacy': 'Privacidade',
         'footer.support': 'Suporte',
         'footer.copyright': '© 2025 OpServer',
-        
-        // General
+          // General
         'general.online': 'Online',
         'general.offline': 'Offline',
         'general.loading': 'Carregando...',
         'general.unknown': '?',
-        'general.location': 'João Pessoa, PB'
+        'general.location': 'João Pessoa, PB',
+          // Main Page Server Status
+        'main.status.online': 'Online',
+        'main.status.offline': 'Offline', 
+        'main.status.checking': 'Verificando...',
+        'main.status.unknown': 'Desconhecido',
+        'main.status.vpn': 'Servidor VPN'
       },      en: {
         // Page Title
         'page.title': 'Welcome',
@@ -144,17 +152,20 @@ class TranslationSystem {
         
         // Servers Section (Nova página)
         'servers.title': 'OUR SERVERS',
-        'servers.subtitle': 'Detailed information about all our Counter-Strike 2 servers',
-        'servers.server.title': 'A GREAT CHAOS 01',
-        'servers.server.status': 'ONLINE',
+        'servers.subtitle': 'Detailed information about all our servers',        'servers.server.title': 'A GREAT CHAOS 01',
         'servers.server.map': 'Map',
         'servers.server.players': 'Players',
         'servers.server.mode': 'Mode',
         'servers.server.region': 'Region',
+        'servers.server.latency': 'Latency',
         'servers.server.connect': 'Connect via Steam',
-        'servers.server.ip': 'Server IP:',
-        'servers.server.copy': 'Copy IP',
-        'servers.server.toggle': 'Show/Hide IP',        'servers.features.title': 'HIGHLIGHTS',
+        'servers.server.ip': 'Server IP:',        'servers.server.copy': 'Copy IP',
+        'servers.server.toggle': 'Show/Hide IP',
+        'servers.map.current': 'CURRENT MAP',
+        'servers.map.loading': 'Loading information...',        'servers.status.online': 'ONLINE',
+        'servers.status.offline': 'OFFLINE',
+        'servers.status.unknown': 'UNKNOWN',
+        'servers.status.vpn': 'VPN SERVER','servers.features.title': 'HIGHLIGHTS',
         'servers.feature1': '24/7 (coming soon)',
         'servers.feature2': '128-tickrate',
         'servers.feature3': 'Anti-cheat plugins',
@@ -174,13 +185,18 @@ class TranslationSystem {
         'footer.privacy': 'Privacy',
         'footer.support': 'Support',
         'footer.copyright': '© 2025 OpServer',
-        
-        // General
+          // General
         'general.online': 'Online',
         'general.offline': 'Offline',
         'general.loading': 'Loading...',
         'general.unknown': '?',
-        'general.location': 'João Pessoa, PB'
+        'general.location': 'João Pessoa, PB',
+          // Main Page Server Status
+        'main.status.online': 'Online',
+        'main.status.offline': 'Offline', 
+        'main.status.checking': 'Checking...',
+        'main.status.unknown': 'Unknown',
+        'main.status.vpn': 'VPN Server'
       }
     };
     

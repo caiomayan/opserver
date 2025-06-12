@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Integração Main Page - OpServer</title>
+    <link rel="stylesheet" href="./src/style.css">
+    <style>
+        body {
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .status-preview {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .preview-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 200px;
+        }
+        .server-count {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 10px auto;
+            transition: background-color 0.3s ease;
+        }
+        .debug-info {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .language-selector {
+            margin: 20px 0;
+        }
+        .language-button {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .refresh-button {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .status-details {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 10px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+        .preview-box:hover .status-details {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste de Integração - Status Dinâmico da Main Page</h1>
+        
+        <div class="language-selector">
+            <h3>Idioma:</h3>
+            <button class="language-button" data-lang="pt">🇧🇷 Português</button>
+            <button class="language-button" data-lang="en">🇺🇸 English</button>
+        </div>
+
+        <div class="status-preview">
+            <!-- Preview da caixa como aparece na main page -->
+            <div class="preview-box">
+                <h3>Preview Main Page</h3>
+                <div id="test-server-count" class="server-count">01</div>
+                <div>SERVIDORES ONLINE</div>
+                <div id="test-status-dot" class="status-dot" style="background-color: #6b7280;"></div>
+                <div class="status-details">
+                    <div>Status: <span id="test-status-text">Verificando...</span></div>
+                    <div>Atualização: <span id="test-last-update">-</span></div>
+                </div>
+            </div>
+
+            <!-- Status atual do servidor -->
+            <div class="preview-box">
+                <h3>Status Real do Servidor</h3>
+                <div id="real-server-status" class="server-count">?</div>
+                <div>STATUS ATUAL</div>
+                <div id="real-status-dot" class="status-dot" style="background-color: #6b7280;"></div>
+                <div style="opacity: 1;" class="status-details">
+                    <div>IP: 26.115.124.39:27015</div>
+                    <div>Tipo: <span id="server-type">VPN</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="debug-info">
+            <div><strong>Página Detectada:</strong> <span id="debug-page">-</span></div>
+            <div><strong>Sistema CS2Status:</strong> <span id="debug-cs2-status">-</span></div>
+            <div><strong>MainPageServerStatus:</strong> <span id="debug-main-status">-</span></div>
+            <div><strong>Sistema de Tradução:</strong> <span id="debug-translation">-</span></div>
+            <div><strong>Última Atualização:</strong> <span id="debug-update-time">-</span></div>
+            <div><strong>Total de Eventos:</strong> <span id="debug-event-count">0</span></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Controles de Teste:</h3>
+            <button class="refresh-button" onclick="forceRefresh()">🔄 Forçar Atualização</button>
+            <button class="refresh-button" onclick="simulateServerChange('online')">🟢 Simular Online</button>
+            <button class="refresh-button" onclick="simulateServerChange('offline')">🔴 Simular Offline</button>
+            <button class="refresh-button" onclick="simulateServerChange('unknown')">⚪ Simular Desconhecido</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Links para Testar:</h3>
+            <a href="main.html" target="_blank" style="color: #3b82f6;">🏠 Página Principal</a> | 
+            <a href="servers.html" target="_blank" style="color: #3b82f6;">🖥️ Página de Servidores</a>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Instruções:</h3>
+            <ol style="color: #ccc; line-height: 1.6;">
+                <li>Verifique se o contador de servidores atualiza automaticamente</li>
+                <li>Teste a mudança de idiomas para ver se as traduções funcionam</li>
+                <li>Observe o status dot mudando de cor conforme o status</li>
+                <li>Passe o mouse sobre o preview para ver detalhes</li>
+                <li>Use os botões de simulação para testar diferentes estados</li>
+                <li>Compare com as páginas reais usando os links</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Load required scripts -->
+    <script type="module" src="./src/translations.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+
+    <script>
+        let eventCount = 0;
+        let testMainPageStatus = null;
+
+        // Mock da classe MainPageServerStatus para teste
+        class TestMainPageServerStatus {
+            constructor() {
+                this.serverCount = 1;
+                this.onlineServers = 0;
+                this.init();
+            }
+
+            init() {
+                console.log('🔧 Test MainPageServerStatus initializing...');
+                
+                // Listen for server status updates
+                window.addEventListener('serverStatusUpdate', (event) => {
+                    this.handleServerStatusUpdate(event.detail);
+                    eventCount++;
+                    document.getElementById('debug-event-count').textContent = eventCount;
+                });
+
+                // Initialize with default state
+                this.updateTestUI({
+                    status: 'unknown',
+                    isChecking: true
+                });
+            }
+
+            handleServerStatusUpdate(serverData) {
+                console.log('📊 Test received server update:', serverData);
+                this.updateTestUI(serverData);
+                this.updateRealStatus(serverData);
+            }
+
+            updateTestUI(serverData) {
+                const countDisplay = document.getElementById('test-server-count');
+                const statusDot = document.getElementById('test-status-dot');
+                const statusText = document.getElementById('test-status-text');
+                const lastUpdate = document.getElementById('test-last-update');
+
+                // Update count
+                if (serverData.status === 'online') {
+                    this.onlineServers = 1;
+                } else {
+                    this.onlineServers = 0;
+                }
+
+                const displayCount = this.onlineServers.toString().padStart(2, '0');
+                countDisplay.textContent = displayCount;
+
+                // Update status dot
+                statusDot.className = 'status-dot';
+                const colors = {
+                    'online': '#22c55e',
+                    'offline': '#ef4444',
+                    'unknown': '#6b7280'
+                };
+                statusDot.style.backgroundColor = colors[serverData.status] || '#6b7280';
+
+                // Update status text with translation
+                if (window.TranslationSystem) {
+                    const statusKey = serverData.status === 'unknown' ? 'checking' : serverData.status;
+                    statusText.textContent = window.TranslationSystem.translate(`main.status.${statusKey}`);
+                } else {
+                    const statusTexts = {
+                        'online': 'Online',
+                        'offline': 'Offline',
+                        'unknown': 'Verificando...'
+                    };
+                    statusText.textContent = statusTexts[serverData.status] || 'Desconhecido';
+                }
+
+                // Update time
+                const now = new Date();
+                lastUpdate.textContent = now.toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+
+            updateRealStatus(serverData) {
+                const realStatus = document.getElementById('real-server-status');
+                const realDot = document.getElementById('real-status-dot');
+                
+                realStatus.textContent = serverData.status.toUpperCase();
+                
+                const colors = {
+                    'online': '#22c55e',
+                    'offline': '#ef4444',
+                    'unknown': '#6b7280'
+                };
+                realDot.style.backgroundColor = colors[serverData.status] || '#6b7280';
+            }
+        }
+
+        // Debug functions
+        function updateDebugInfo() {
+            document.getElementById('debug-page').textContent = 'Test Page';
+            document.getElementById('debug-cs2-status').textContent = 
+                window.mainPageCS2Status ? 'Carregado' : 'Não carregado';
+            document.getElementById('debug-main-status').textContent = 
+                testMainPageStatus ? 'Carregado' : 'Não carregado';
+            document.getElementById('debug-translation').textContent = 
+                window.TranslationSystem ? 'Carregado' : 'Não carregado';
+            document.getElementById('debug-update-time').textContent = new Date().toLocaleTimeString();
+        }
+
+        function forceRefresh() {
+            if (window.mainPageCS2Status) {
+                console.log('🔄 Forcing server data refresh...');
+                window.mainPageCS2Status.fetchServerData().then(data => {
+                    console.log('✅ Forced refresh complete:', data);
+                });
+            }
+        }
+
+        function simulateServerChange(status) {
+            const mockData = {
+                name: 'A GREAT CHAOS 01',
+                map: '?',
+                players: { current: '?', max: 32 },
+                status: status,
+                ping: null,
+                gameMode: '?',
+                secure: true,
+                isVpnServer: true,
+                lastUpdate: new Date().toISOString()
+            };
+
+            console.log(`🎭 Simulating server status: ${status}`);
+            
+            // Dispatch event manually
+            window.dispatchEvent(new CustomEvent('serverStatusUpdate', { 
+                detail: mockData 
+            }));
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testMainPageStatus = new TestMainPageServerStatus();
+                
+                // Start debug info updates
+                setInterval(updateDebugInfo, 1000);
+                updateDebugInfo();
+                
+                console.log('✅ Test page initialized');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

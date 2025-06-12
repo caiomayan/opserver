@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug VPN Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">🐛 Debug VPN Detection</h1>
+        
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🔧 Debug Controls</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <button id="test-vpn-ip" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Test VPN IP Detection</button>
+                <button id="force-vpn-status" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded">Force VPN Status</button>
+                <button id="manual-fetch" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded">Manual Fetch</button>
+            </div>
+            
+            <div id="debug-output" class="bg-gray-700 rounded p-4 font-mono text-sm max-h-96 overflow-y-auto"></div>
+        </div>
+        
+        <!-- Mock Main Page VPN Indicator -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Main Page VPN Indicator</h2>
+            <div class="text-center">
+                <div id="main-vpn-indicator" class="mt-4 flex items-center justify-center space-x-1 text-xs text-amber-500 opacity-0 transition-opacity duration-300" style="display: none;">
+                    <span>🔌</span>
+                    <span>Servidor VPN</span>
+                </div>
+                <div class="mt-2">
+                    <span id="main-indicator-status" class="text-gray-400">Indicador oculto</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mock Servers Page VPN Indicator -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">🖥️ Servers Page VPN Indicator</h2>
+            <div id="vpn-indicator" class="flex items-center space-x-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg" style="display: none;">
+                <div class="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                    <span class="text-xs">🔌</span>
+                </div>
+                <div>
+                    <div class="text-sm font-medium text-amber-400">Servidor VPN Detectado</div>
+                    <div class="text-xs text-amber-500/80">Este servidor utiliza rede privada/VPN</div>
+                </div>
+            </div>
+            <div class="mt-2">
+                <span id="server-indicator-status" class="text-gray-400">Indicador oculto</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts -->
+    <script src="./src/server-cache.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('debug-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.textContent = `[${timestamp}] ${message}`;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateIndicatorStatus() {
+            const mainIndicator = document.getElementById('main-vpn-indicator');
+            const serverIndicator = document.getElementById('vpn-indicator');
+            
+            const mainStatus = document.getElementById('main-indicator-status');
+            const serverStatus = document.getElementById('server-indicator-status');
+            
+            if (mainIndicator.style.display === 'flex') {
+                mainStatus.textContent = '✅ Indicador visível';
+                mainStatus.className = 'text-green-400';
+            } else {
+                mainStatus.textContent = '❌ Indicador oculto';
+                mainStatus.className = 'text-red-400';
+            }
+            
+            if (serverIndicator.style.display === 'flex') {
+                serverStatus.textContent = '✅ Indicador visível';
+                serverStatus.className = 'text-green-400';
+            } else {
+                serverStatus.textContent = '❌ Indicador oculto';
+                serverStatus.className = 'text-red-400';
+            }
+        }
+
+        document.getElementById('test-vpn-ip').addEventListener('click', () => {
+            log('🔍 Testing VPN IP detection...');
+            
+            if (window.cs2ServerStatus) {
+                const testIPs = ['26.115.124.39', '192.168.1.1', '26.0.0.1', '25.255.255.255'];
+                
+                testIPs.forEach(ip => {
+                    const isVPN = window.cs2ServerStatus.isPrivateNetworkIP(ip);
+                    log(`IP ${ip}: ${isVPN ? '🔌 VPN detected' : '🌐 Not VPN'}`);
+                });
+            } else {
+                log('❌ CS2ServerStatus not available');
+            }
+        });
+
+        document.getElementById('force-vpn-status').addEventListener('click', () => {
+            log('🔌 Forcing VPN status...');
+            
+            const vpnData = {
+                name: 'A GREAT CHAOS 01',
+                map: '?',
+                players: { current: 0, max: 32 },
+                status: 'vpn',
+                ping: null,
+                gameMode: '?',
+                secure: true,
+                lastUpdate: new Date().toISOString(),
+                isVpnServer: true,
+                fromCache: false
+            };
+            
+            if (window.cs2ServerStatus) {
+                window.cs2ServerStatus.updateVpnIndicators(vpnData);
+                log('✅ VPN indicators updated with forced data');
+                
+                // Also dispatch the event
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', {
+                    detail: vpnData
+                }));
+                log('📡 Server status update event dispatched');
+            } else {
+                log('❌ CS2ServerStatus not available');
+            }
+            
+            setTimeout(updateIndicatorStatus, 100);
+        });
+
+        document.getElementById('manual-fetch').addEventListener('click', async () => {
+            log('📡 Manual fetch initiated...');
+            
+            if (window.cs2ServerStatus) {
+                try {
+                    const data = await window.cs2ServerStatus.fetchServerData();
+                    log(`📊 Fetched data: ${JSON.stringify(data, null, 2)}`);
+                    
+                    if (data.status === 'vpn') {
+                        log('🔌 VPN server detected in fetched data!');
+                    } else {
+                        log(`ℹ️ Server status: ${data.status}`);
+                    }
+                    
+                    // Update UI
+                    window.cs2ServerStatus.updateUI(data);
+                    log('🎨 UI updated with fetched data');
+                    
+                } catch (error) {
+                    log(`❌ Fetch error: ${error.message}`);
+                }
+            } else {
+                log('❌ CS2ServerStatus not available');
+            }
+            
+            setTimeout(updateIndicatorStatus, 100);
+        });
+
+        // Listen for events
+        window.addEventListener('serverStatusUpdate', (event) => {
+            log('📡 Received serverStatusUpdate event');
+            log(`📊 Event data: ${JSON.stringify(event.detail)}`);
+            
+            if (event.detail.status === 'vpn') {
+                log('🔌 VPN status detected in event!');
+            }
+            
+            setTimeout(updateIndicatorStatus, 100);
+        });
+
+        document.addEventListener('vpnServerDetected', (event) => {
+            log('🎯 Received vpnServerDetected event');
+            log(`📊 VPN Event data: ${JSON.stringify(event.detail)}`);
+            setTimeout(updateIndicatorStatus, 100);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Debug page loaded');
+            updateIndicatorStatus();
+            
+            setTimeout(() => {
+                if (window.cs2ServerStatus) {
+                    log('✅ CS2ServerStatus is available');
+                    
+                    // Test the configuration
+                    const config = window.cs2ServerStatus.config;
+                    log(`📋 Server IP: ${config.SERVER_IP}`);
+                    log(`📋 Server Port: ${config.SERVER_PORT}`);
+                    
+                    // Test VPN detection
+                    const isVPN = window.cs2ServerStatus.isPrivateNetworkIP(config.SERVER_IP);
+                    log(`🔍 Is VPN (${config.SERVER_IP}): ${isVPN}`);
+                    
+                } else {
+                    log('⚠️ CS2ServerStatus not yet available');
+                }
+            }, 1000);
+        });
+
+        // Monitor indicator changes
+        const observer = new MutationObserver(() => {
+            updateIndicatorStatus();
+        });
+
+        setTimeout(() => {
+            const mainIndicator = document.getElementById('main-vpn-indicator');
+            const serverIndicator = document.getElementById('vpn-indicator');
+            
+            if (mainIndicator) {
+                observer.observe(mainIndicator, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (serverIndicator) {
+                observer.observe(serverIndicator, { attributes: true, attributeFilter: ['style'] });
+            }
+        }, 500);
+    </script>
+</body>
+</html>

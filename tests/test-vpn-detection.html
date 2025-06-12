@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - VPN Detection System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        /* Status Dots */
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .status-dot.online { 
+            background: #22c55e; 
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+        .status-dot.offline { 
+            background: #ef4444; 
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        .status-dot.unknown { 
+            background: #6b7280; 
+            animation: pulse-slow 3s infinite;
+        }
+        .status-dot.vpn { 
+            background: #f59e0b; 
+            animation: pulse-vpn 2s infinite;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+        @keyframes pulse-vpn {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        /* VPN Indicator */
+        .vpn-indicator {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f59e0b;
+        }
+        
+        .server-count {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .server-count.online { color: #22c55e; }
+        .server-count.zero { color: #6b7280; }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        
+        .log {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .demo-box {
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .status-text {
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .status-text.online { color: #22c55e; }
+        .status-text.offline { color: #ef4444; }
+        .status-text.unknown { color: #6b7280; }
+        .status-text.vpn { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste do Sistema de Detecção VPN</h1>
+        
+        <div class="test-section">
+            <h2>Status do Sistema Atual</h2>
+            <p>IP do servidor: <strong>26.115.124.39</strong> (VPN confirmado pelo usuário)</p>
+            
+            <div id="current-status" class="demo-box">
+                <h3>Status Detectado:</h3>
+                <div id="detected-status" style="display: flex; align-items: center; margin: 10px 0;">
+                    <div class="status-dot unknown" id="current-dot"></div>
+                    <span class="status-text unknown" id="current-text">Verificando...</span>
+                </div>
+                
+                <div class="server-count zero" id="current-count">00</div>
+                <span>Servidores Online</span>
+                
+                <div id="current-vpn-indicator" class="vpn-indicator" style="display: none;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>SERVIDOR VPN - Status detectado automaticamente</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Simulações de Estado</h2>
+            <div style="margin: 20px 0;">
+                <button onclick="simulateVPN()">Simular VPN Detectado</button>
+                <button onclick="simulateOnline()">Simular Servidor Online</button>
+                <button onclick="simulateOffline()">Simular Servidor Offline</button>
+                <button onclick="simulateUnknown()">Simular Status Desconhecido</button>
+                <button onclick="testCurrentServer()">Testar Servidor Atual</button>
+            </div>
+            
+            <div class="log" id="log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Demonstração Visual dos Estados</h2>
+            
+            <div class="demo-box">
+                <h3>🟢 Servidor Online (Normal)</h3>
+                <div style="display: flex; align-items: center; margin: 10px 0;">
+                    <div class="status-dot online"></div>
+                    <span class="status-text online">ONLINE</span>
+                </div>
+                <div class="server-count online">01</div>
+                <span>Servidores Online</span>
+            </div>
+            
+            <div class="demo-box">
+                <h3>🔴 Servidor Offline</h3>
+                <div style="display: flex; align-items: center; margin: 10px 0;">
+                    <div class="status-dot offline"></div>
+                    <span class="status-text offline">OFFLINE</span>
+                </div>
+                <div class="server-count zero">00</div>
+                <span>Servidores Online</span>
+            </div>
+            
+            <div class="demo-box">
+                <h3>🟡 Servidor VPN (Nova Funcionalidade)</h3>
+                <div style="display: flex; align-items: center; margin: 10px 0;">
+                    <div class="status-dot vpn"></div>
+                    <span class="status-text vpn">SERVIDOR VPN</span>
+                </div>
+                <div class="server-count zero">00</div>
+                <span>Servidores Online</span>
+                <div class="vpn-indicator">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>SERVIDOR VPN - Status detectado automaticamente</span>
+                </div>
+            </div>
+            
+            <div class="demo-box">
+                <h3>⚪ Status Desconhecido</h3>
+                <div style="display: flex; align-items: center; margin: 10px 0;">
+                    <div class="status-dot unknown"></div>
+                    <span class="status-text unknown">DESCONHECIDO</span>
+                </div>
+                <div class="server-count zero">00</div>
+                <span>Servidores Online</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import CS2ServerStatus para testar
+        import { CS2ServerStatus } from './src/cs2-server-status.js';
+        
+        let serverStatus;
+        
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${time}] ${message}<br>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateCurrentStatus(status, count = 0) {
+            const dot = document.getElementById('current-dot');
+            const text = document.getElementById('current-text');
+            const countEl = document.getElementById('current-count');
+            const vpnIndicator = document.getElementById('current-vpn-indicator');
+            
+            // Remove all classes
+            dot.className = 'status-dot';
+            text.className = 'status-text';
+            countEl.className = 'server-count';
+            
+            // Add new classes
+            dot.classList.add(status);
+            text.classList.add(status);
+            countEl.classList.add(count > 0 ? 'online' : 'zero');
+            
+            // Update text
+            const statusTexts = {
+                'online': 'ONLINE',
+                'offline': 'OFFLINE',
+                'unknown': 'DESCONHECIDO',
+                'vpn': 'SERVIDOR VPN'
+            };
+            text.textContent = statusTexts[status] || status.toUpperCase();
+            
+            // Update count
+            countEl.textContent = count.toString().padStart(2, '0');
+            
+            // Show/hide VPN indicator
+            if (status === 'vpn') {
+                vpnIndicator.style.display = 'flex';
+            } else {
+                vpnIndicator.style.display = 'none';
+            }
+            
+            log(`✅ Status atualizado: ${status.toUpperCase()}, Servidores: ${count}`);
+        }
+        
+        window.simulateVPN = function() {
+            updateCurrentStatus('vpn', 0);
+            log('🔒 Simulando servidor VPN detectado - 0 servidores online');
+        };
+        
+        window.simulateOnline = function() {
+            updateCurrentStatus('online', 1);
+            log('🟢 Simulando servidor online - 1 servidor online');
+        };
+        
+        window.simulateOffline = function() {
+            updateCurrentStatus('offline', 0);
+            log('🔴 Simulando servidor offline - 0 servidores online');
+        };
+        
+        window.simulateUnknown = function() {
+            updateCurrentStatus('unknown', 0);
+            log('⚪ Simulando status desconhecido - 0 servidores online');
+        };
+        
+        window.testCurrentServer = function() {
+            if (serverStatus) {
+                log('🔍 Testando detecção do servidor atual...');
+                
+                const isVPN = serverStatus.isPrivateNetworkIP('26.115.124.39');
+                log(`📊 IP 26.115.124.39 detectado como VPN: ${isVPN ? 'SIM' : 'NÃO'}`);
+                
+                if (isVPN) {
+                    const vpnData = serverStatus.getVpnServerData();
+                    log(`📦 Dados VPN: status="${vpnData.status}", isVpnServer=${vpnData.isVpnServer}`);
+                    updateCurrentStatus('vpn', 0);
+                    log('✅ CORRETO: IP VPN detectado, mostrando 0 servidores');
+                } else {
+                    log('❌ ERRO: IP VPN não foi detectado!');
+                    updateCurrentStatus('online', 1);
+                }
+            } else {
+                log('❌ Sistema não carregado ainda');
+            }
+        };
+        
+        // Inicializar quando carregar
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Iniciando sistema de teste VPN...');
+            
+            try {
+                serverStatus = new CS2ServerStatus({ 
+                    DEBUG_MODE: true,
+                    VERBOSE_LOGGING: true 
+                });
+                log('✅ CS2ServerStatus carregado');
+                
+                // Aguardar um pouco para configuração carregar
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Testar automaticamente o servidor atual
+                testCurrentServer();
+                
+                log('✅ Sistema de teste VPN inicializado');
+                log('🔧 Use os botões acima para simular diferentes estados');
+                
+            } catch (error) {
+                log(`❌ Erro ao carregar: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" class="w-full h-full">
+  <!-- Background -->
+  <rect width="400" height="225" fill="#1a1a1a"/>
+  
+  <!-- Grid Pattern -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="225" fill="url(#grid)"/>
+  
+  <!-- Center Circle -->
+  <circle cx="200" cy="112.5" r="50" fill="none" stroke="#444" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Question Mark -->
+  <text x="200" y="130" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="48" font-weight="bold">?</text>
+  
+  <!-- Unknown Text -->
+  <text x="200" y="185" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="14" opacity="0.7">MAPA DESCONHECIDO</text>
+</svg>

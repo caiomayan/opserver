@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Counter Timing - OpServer</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: monospace;
+            padding: 20px;
+            margin: 0;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+        }
+        .counter-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #22c55e;
+        }
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .status-dot.online { background: #22c55e; }
+        .status-dot.offline { background: #ef4444; }
+        .status-dot.unknown { background: #6b7280; }
+        .status-dot.vpn { background: #f59e0b; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Debug Counter Timing</h1>
+        
+        <div class="section">
+            <h2>📊 Current Counter State</h2>
+            <div class="counter-display" id="counter-display">00</div>
+            <div>
+                Status: <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Initializing...</span>
+            </div>
+            <div>
+                VPN Detected: <span id="vpn-status">No</span>
+            </div>
+            <div>
+                Last Update: <span id="last-update">Never</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⏱️ Timing Analysis</h2>
+            <div>
+                <strong>Initialization Times:</strong>
+                <ul>
+                    <li>CS2ServerStatus delay: 500ms</li>
+                    <li>MainPageServerStatus delay: 1000ms</li>
+                    <li>Total initial delay: ~1.5s</li>
+                </ul>
+            </div>
+            <div>
+                <strong>Update Intervals:</strong>
+                <ul>
+                    <li>UPDATE_INTERVAL: <span id="update-interval">?</span>ms</li>
+                    <li>Cache Duration: <span id="cache-duration">?</span>ms</li>
+                    <li>Request Timeout: <span id="request-timeout">?</span>ms</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Controls</h2>
+            <button onclick="triggerManualUpdate()">Manual Update</button>
+            <button onclick="simulateVPN()">Simulate VPN</button>
+            <button onclick="simulateOffline()">Simulate Offline</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <button onclick="analyzeTimings()">Analyze Timings</button>
+        </div>
+
+        <div class="section">
+            <h2>📋 Event Logs</h2>
+            <div id="log-container"></div>
+        </div>
+    </div>
+
+    <!-- Include necessary scripts -->
+    <script src="./src/server-cache.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+
+    <script>
+        class CounterTimingDebugger {
+            constructor() {
+                this.logs = [];
+                this.initTime = Date.now();
+                this.lastUpdateTime = null;
+                this.eventCounts = {
+                    serverStatusUpdate: 0,
+                    vpnServerDetected: 0
+                };
+                this.init();
+            }
+
+            init() {
+                this.log('🚀 Debugger initialized');
+                
+                // Monitor system initialization
+                this.monitorInitialization();
+                
+                // Listen for all events
+                this.setupEventListeners();
+                
+                // Start monitoring
+                this.startMonitoring();
+            }
+
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const timeSinceInit = Date.now() - this.initTime;
+                
+                const entry = {
+                    timestamp,
+                    timeSinceInit,
+                    message,
+                    type
+                };
+                
+                this.logs.push(entry);
+                this.updateLogDisplay();
+                
+                console.log(`[${timestamp}] +${timeSinceInit}ms: ${message}`);
+            }
+
+            updateLogDisplay() {
+                const container = document.getElementById('log-container');
+                const latest = this.logs.slice(-20); // Show last 20 logs
+                
+                container.innerHTML = latest.map(entry => `
+                    <div class="log-entry" style="color: ${this.getLogColor(entry.type)}">
+                        <span class="timestamp">[${entry.timestamp}] +${entry.timeSinceInit}ms:</span>
+                        ${entry.message}
+                    </div>
+                `).join('');
+                
+                // Auto-scroll to bottom
+                container.scrollTop = container.scrollHeight;
+            }
+
+            getLogColor(type) {
+                const colors = {
+                    info: '#fff',
+                    success: '#22c55e',
+                    warning: '#f59e0b',
+                    error: '#ef4444',
+                    event: '#3b82f6'
+                };
+                return colors[type] || '#fff';
+            }
+
+            monitorInitialization() {
+                // Monitor when CS2ServerStatus becomes available
+                const checkCS2Status = setInterval(() => {
+                    if (window.cs2ServerStatus) {
+                        this.log('✅ CS2ServerStatus available', 'success');
+                        this.updateConfigDisplay();
+                        clearInterval(checkCS2Status);
+                    }
+                }, 100);
+
+                // Monitor when MainPageServerStatus becomes available
+                const checkMainStatus = setInterval(() => {
+                    if (window.mainPageServerStatus) {
+                        this.log('✅ MainPageServerStatus available', 'success');
+                        clearInterval(checkMainStatus);
+                    }
+                }, 100);
+            }
+
+            setupEventListeners() {
+                // Listen for server status updates
+                window.addEventListener('serverStatusUpdate', (event) => {
+                    this.eventCounts.serverStatusUpdate++;
+                    this.log(`📊 Server status update #${this.eventCounts.serverStatusUpdate}: ${event.detail.status}`, 'event');
+                    this.updateDisplay(event.detail);
+                });
+
+                // Listen for VPN detection
+                document.addEventListener('vpnServerDetected', (event) => {
+                    this.eventCounts.vpnServerDetected++;
+                    this.log(`🔌 VPN detected #${this.eventCounts.vpnServerDetected}`, 'event');
+                    this.updateVPNDisplay(true);
+                });
+
+                // Monitor DOM changes to counter
+                const counterElement = document.getElementById('counter-display');
+                if (counterElement) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                this.log(`🔢 Counter changed to: ${counterElement.textContent}`, 'warning');
+                            }
+                        });
+                    });
+                    observer.observe(counterElement, { childList: true, subtree: true, characterData: true });
+                }
+            }
+
+            updateConfigDisplay() {
+                if (window.cs2ServerStatus && window.cs2ServerStatus.config) {
+                    const config = window.cs2ServerStatus.config;
+                    document.getElementById('update-interval').textContent = config.UPDATE_INTERVAL || 'N/A';
+                    document.getElementById('request-timeout').textContent = config.REQUEST_TIMEOUT || 'N/A';
+                    
+                    if (window.cs2ServerStatus.cachedFetcher) {
+                        document.getElementById('cache-duration').textContent = 
+                            window.cs2ServerStatus.cachedFetcher.options?.cache?.cacheDuration || 'N/A';
+                    }
+                }
+            }
+
+            updateDisplay(serverData) {
+                this.lastUpdateTime = Date.now();
+                
+                // Update counter
+                const counter = document.getElementById('counter-display');
+                const hasActiveServer = serverData.status === 'online' || serverData.status === 'vpn';
+                counter.textContent = hasActiveServer ? '01' : '00';
+                counter.style.color = hasActiveServer ? '#22c55e' : '#6b7280';
+                
+                // Update status dot
+                const dot = document.getElementById('status-dot');
+                dot.className = `status-dot ${serverData.status}`;
+                
+                // Update status text
+                document.getElementById('status-text').textContent = serverData.status.toUpperCase();
+                
+                // Update last update time
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                
+                // Check for VPN
+                if (serverData.status === 'vpn') {
+                    this.updateVPNDisplay(true);
+                }
+            }
+
+            updateVPNDisplay(detected) {
+                document.getElementById('vpn-status').textContent = detected ? 'Yes' : 'No';
+                document.getElementById('vpn-status').style.color = detected ? '#f59e0b' : '#6b7280';
+            }
+
+            startMonitoring() {
+                // Check timing every second
+                setInterval(() => {
+                    this.analyzeCurrentState();
+                }, 5000);
+            }
+
+            analyzeCurrentState() {
+                const timeSinceInit = Date.now() - this.initTime;
+                const timeSinceLastUpdate = this.lastUpdateTime ? Date.now() - this.lastUpdateTime : null;
+                
+                if (timeSinceInit > 5000 && this.eventCounts.serverStatusUpdate === 0) {
+                    this.log(`⚠️ No server updates after ${Math.round(timeSinceInit/1000)}s`, 'warning');
+                }
+                
+                if (timeSinceLastUpdate && timeSinceLastUpdate > 35000) {
+                    this.log(`⚠️ Last update was ${Math.round(timeSinceLastUpdate/1000)}s ago`, 'warning');
+                }
+            }
+
+            // Manual controls
+            triggerManualUpdate() {
+                this.log('🔧 Manual update triggered', 'info');
+                if (window.cs2ServerStatus) {
+                    window.cs2ServerStatus.fetchServerData()
+                        .then(data => {
+                            this.log(`✅ Manual update successful: ${data.status}`, 'success');
+                            this.updateDisplay(data);
+                        })
+                        .catch(error => {
+                            this.log(`❌ Manual update failed: ${error.message}`, 'error');
+                        });
+                } else {
+                    this.log('❌ CS2ServerStatus not available', 'error');
+                }
+            }
+
+            simulateVPN() {
+                this.log('🔧 Simulating VPN detection', 'info');
+                const vpnData = { status: 'vpn', ip: '26.115.124.39' };
+                document.dispatchEvent(new CustomEvent('vpnServerDetected', { detail: vpnData }));
+                this.updateDisplay(vpnData);
+            }
+
+            simulateOffline() {
+                this.log('🔧 Simulating offline status', 'info');
+                const offlineData = { status: 'offline' };
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: offlineData }));
+                this.updateDisplay(offlineData);
+            }
+
+            clearLogs() {
+                this.logs = [];
+                this.updateLogDisplay();
+                this.log('🗑️ Logs cleared', 'info');
+            }
+
+            analyzeTimings() {
+                this.log('📊 Timing Analysis:', 'info');
+                this.log(`- Events: serverStatus=${this.eventCounts.serverStatusUpdate}, vpn=${this.eventCounts.vpnServerDetected}`, 'info');
+                this.log(`- Time since init: ${Math.round((Date.now() - this.initTime)/1000)}s`, 'info');
+                this.log(`- Time since last update: ${this.lastUpdateTime ? Math.round((Date.now() - this.lastUpdateTime)/1000) : 'Never'}s`, 'info');
+                
+                if (window.cs2ServerStatus) {
+                    this.log(`- CS2ServerStatus isUpdating: ${window.cs2ServerStatus.isUpdating}`, 'info');
+                    this.log(`- Update interval: ${window.cs2ServerStatus.config.UPDATE_INTERVAL}ms`, 'info');
+                }
+            }
+        }
+
+        // Global functions for buttons
+        let debugger;
+        
+        function triggerManualUpdate() {
+            debugger?.triggerManualUpdate();
+        }
+        
+        function simulateVPN() {
+            debugger?.simulateVPN();
+        }
+        
+        function simulateOffline() {
+            debugger?.simulateOffline();
+        }
+        
+        function clearLogs() {
+            debugger?.clearLogs();
+        }
+        
+        function analyzeTimings() {
+            debugger?.analyzeTimings();
+        }
+
+        // Initialize debugger when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                debugger = new CounterTimingDebugger();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

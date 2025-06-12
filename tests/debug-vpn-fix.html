@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug VPN Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">🔍 Debug VPN Fix</h1>
+        
+        <!-- Debug Info -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Sistema de Debug</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-700 rounded p-4">
+                    <h4 class="font-medium mb-2">Status do Sistema</h4>
+                    <div id="system-status" class="text-sm">Carregando...</div>
+                </div>
+                <div class="bg-gray-700 rounded p-4">
+                    <h4 class="font-medium mb-2">Detecção VPN</h4>
+                    <div id="vpn-status" class="text-sm">Verificando...</div>
+                </div>
+            </div>
+            
+            <!-- Main Page VPN Indicator -->
+            <div class="bg-gray-700 rounded p-4 mb-4">
+                <h4 class="font-medium mb-2">Indicador VPN - Página Principal</h4>
+                <div id="main-vpn-indicator" class="mt-4 flex items-center justify-center space-x-1 text-xs text-amber-500 opacity-0 transition-opacity duration-300" style="display: none;">
+                    <span>🔌</span>
+                    <span>Servidor VPN</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2">Estado: <span id="main-vpn-state">Oculto</span></div>
+            </div>
+            
+            <!-- Server Page VPN Indicator -->
+            <div class="bg-gray-700 rounded p-4 mb-4">
+                <h4 class="font-medium mb-2">Indicador VPN - Página de Servidores</h4>
+                <div id="vpn-indicator" class="flex items-center space-x-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg" style="display: none;">
+                    <div class="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                        <span class="text-xs">🔌</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-amber-400">Servidor VPN Detectado</div>
+                        <div class="text-xs text-amber-500/80">Este servidor utiliza rede privada/VPN</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-400 mt-2">Estado: <span id="server-vpn-state">Oculto</span></div>
+            </div>
+            
+            <!-- Elemento para simular página de servidores -->
+            <div id="server-status-text" style="display: none;">Simula página de servidores</div>
+            
+            <div class="text-center space-x-2">
+                <button id="test-detection" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Testar Detecção</button>
+                <button id="force-vpn" class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded">Forçar VPN</button>
+                <button id="reset-all" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Log -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Log de Debug</h2>
+            <div id="debug-log" class="bg-gray-900 rounded p-4 font-mono text-sm text-green-400 h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Load scripts -->
+    <script src="./src/server-cache.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+    
+    <script>
+        let debugLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            debugLog.push(logEntry);
+            
+            const logElement = document.getElementById('debug-log');
+            logElement.innerHTML = debugLog.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function updateIndicatorStates() {
+            const mainIndicator = document.getElementById('main-vpn-indicator');
+            const serverIndicator = document.getElementById('vpn-indicator');
+            
+            const mainState = document.getElementById('main-vpn-state');
+            const serverState = document.getElementById('server-vpn-state');
+            
+            mainState.textContent = mainIndicator.style.display === 'flex' ? 'Visível' : 'Oculto';
+            serverState.textContent = serverIndicator.style.display === 'flex' ? 'Visível' : 'Oculto';
+        }
+        
+        // Test detection function
+        async function testVpnDetection() {
+            log('🔍 Iniciando teste de detecção VPN...');
+            
+            try {
+                if (!window.cs2ServerStatus) {
+                    log('❌ CS2ServerStatus não disponível', 'error');
+                    return;
+                }
+                
+                // Test IP detection
+                const testIP = '26.115.124.39';
+                const isVPN = window.cs2ServerStatus.isPrivateNetworkIP(testIP);
+                log(`🔍 Teste IP ${testIP}: ${isVPN ? 'VPN detectado' : 'Não é VPN'}`, isVPN ? 'success' : 'warning');
+                
+                // Test server data fetch
+                log('📡 Buscando dados do servidor...');
+                const serverData = await window.cs2ServerStatus.fetchServerData();
+                log(`📊 Dados recebidos: ${JSON.stringify(serverData)}`);
+                
+                if (serverData.status === 'vpn') {
+                    log('✅ Status VPN detectado nos dados!', 'success');
+                } else {
+                    log(`⚠️ Status retornado: ${serverData.status}`, 'warning');
+                }
+                
+                // Test VPN indicators update
+                log('🔧 Testando atualização de indicadores...');
+                window.cs2ServerStatus.updateVpnIndicators(serverData);
+                
+                updateIndicatorStates();
+                
+            } catch (error) {
+                log(`❌ Erro no teste: ${error.message}`, 'error');
+            }
+        }
+        
+        // Force VPN function
+        function forceVpnIndicators() {
+            log('🔧 Forçando ativação dos indicadores VPN...');
+            
+            const vpnData = {
+                status: 'vpn',
+                name: 'A GREAT CHAOS 01',
+                isVpnServer: true
+            };
+            
+            if (window.cs2ServerStatus) {
+                window.cs2ServerStatus.updateVpnIndicators(vpnData);
+                log('✅ Indicadores VPN forçados via updateVpnIndicators()', 'success');
+            } else {
+                // Manual activation
+                const mainIndicator = document.getElementById('main-vpn-indicator');
+                const serverIndicator = document.getElementById('vpn-indicator');
+                
+                mainIndicator.style.display = 'flex';
+                mainIndicator.style.opacity = '1';
+                
+                serverIndicator.style.display = 'flex';
+                
+                log('✅ Indicadores VPN ativados manualmente', 'success');
+            }
+            
+            updateIndicatorStates();
+        }
+        
+        // Reset function
+        function resetIndicators() {
+            log('🔄 Resetando indicadores...');
+            
+            const mainIndicator = document.getElementById('main-vpn-indicator');
+            const serverIndicator = document.getElementById('vpn-indicator');
+            
+            mainIndicator.style.display = 'none';
+            mainIndicator.style.opacity = '0';
+            
+            serverIndicator.style.display = 'none';
+            
+            updateIndicatorStates();
+            log('✅ Indicadores resetados', 'success');
+        }
+        
+        // Event listeners
+        document.getElementById('test-detection').addEventListener('click', testVpnDetection);
+        document.getElementById('force-vpn').addEventListener('click', forceVpnIndicators);
+        document.getElementById('reset-all').addEventListener('click', resetIndicators);
+        
+        // Listen for VPN events
+        document.addEventListener('vpnServerDetected', (event) => {
+            log(`🎯 Evento vpnServerDetected recebido: ${JSON.stringify(event.detail)}`, 'success');
+        });
+        
+        window.addEventListener('serverStatusUpdate', (event) => {
+            log(`📡 Evento serverStatusUpdate recebido`, 'info');
+            if (event.detail.status === 'vpn') {
+                log(`🔌 Status VPN no evento: ${JSON.stringify(event.detail)}`, 'success');
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Debug VPN Fix iniciado');
+            
+            // Wait for CS2ServerStatus to be available
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            const checkSystem = () => {
+                attempts++;
+                if (window.cs2ServerStatus) {
+                    log('✅ CS2ServerStatus disponível');
+                    document.getElementById('system-status').innerHTML = '<span class="text-green-400">✅ Disponível</span>';
+                    
+                    // Test VPN detection immediately
+                    const isVPN = window.cs2ServerStatus.isPrivateNetworkIP('26.115.124.39');
+                    document.getElementById('vpn-status').innerHTML = `<span class="text-${isVPN ? 'green' : 'red'}-400">${isVPN ? '✅ VPN detectado' : '❌ VPN não detectado'}</span>`;
+                    log(`🔍 Teste VPN imediato: ${isVPN ? 'Sucesso' : 'Falhou'}`, isVPN ? 'success' : 'error');
+                    
+                    updateIndicatorStates();
+                    
+                } else if (attempts < maxAttempts) {
+                    log(`⏳ Aguardando CS2ServerStatus... (tentativa ${attempts}/${maxAttempts})`);
+                    document.getElementById('system-status').innerHTML = `<span class="text-yellow-400">⏳ Carregando... (${attempts}/${maxAttempts})</span>`;
+                    setTimeout(checkSystem, 500);
+                } else {
+                    log('❌ CS2ServerStatus não foi carregado', 'error');
+                    document.getElementById('system-status').innerHTML = '<span class="text-red-400">❌ Não disponível</span>';
+                }
+            };
+            
+            setTimeout(checkSystem, 500);
+        });
+    </script>
+</body>
+</html>

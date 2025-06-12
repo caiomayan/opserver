@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Integração CS2 Server Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background: #0a0a0a;
+            color: white;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+    <div class="container mx-auto px-8 py-16">
+        <h1 class="text-4xl font-bold text-center mb-12">Teste CS2 Server Status</h1>
+        
+        <!-- Test Server Card -->
+        <div class="max-w-2xl mx-auto border border-white/10 bg-white/5 p-8 rounded-lg">
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex justify-between items-center">
+                    <div class="text-2xl font-semibold">A GREAT CHAOS 01</div>
+                    <div class="flex items-center space-x-2">
+                        <div id="server-status-dot" class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                        <span id="server-status-text" class="text-sm font-medium text-gray-400">DESCONHECIDO</span>
+                    </div>
+                </div>
+                
+                <!-- Server Details -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Mapa</span>
+                            <span id="server-map" class="font-mono text-gray-400">?</span>
+                        </div>
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Jogadores</span>
+                            <span id="server-players" class="font-mono text-gray-400">?</span>
+                        </div>
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Modo</span>
+                            <span id="server-mode" class="font-mono text-gray-400">?</span>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Região</span>
+                            <span>João Pessoa, PB</span>
+                        </div>
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Latência</span>
+                            <span id="server-latency" class="font-mono text-gray-400">?</span>
+                        </div>
+                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                            <span class="text-white/60">Proteção</span>
+                            <span class="text-green-400">Anti-Cheat</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Info -->
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-6">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-yellow-400 font-medium">Servidor VPN Detectado</span>
+                    </div>
+                    <p class="text-sm text-yellow-300/80 mt-2">
+                        O servidor está rodando em uma rede privada (Radmin VPN). Os dados do servidor não podem ser obtidos via Steam Web API, portanto o status é mostrado como "DESCONHECIDO" e os valores são exibidos como "?".
+                    </p>
+                </div>
+                
+                <!-- Debug Info -->
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                    <h3 class="text-blue-400 font-medium mb-2">Informações de Debug</h3>
+                    <div class="text-sm space-y-1">
+                        <div>IP do Servidor: <span class="font-mono">26.115.124.39:27015</span></div>
+                        <div>Tipo de Rede: <span class="text-orange-400">Privada/VPN</span></div>
+                        <div>API Steam: <span class="text-red-400">Não Disponível</span></div>
+                        <div>Última Tentativa: <span id="last-update">Aguardando...</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Controls -->
+        <div class="max-w-2xl mx-auto mt-8">
+            <div class="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Controles de Teste</h3>
+                <div class="space-y-3">
+                    <button id="test-refresh" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors">
+                        Atualizar Agora
+                    </button>
+                    <button id="test-toggle" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium transition-colors">
+                        Parar/Iniciar Atualizações
+                    </button>
+                    <div class="text-xs text-white/60">
+                        Sistema atualiza automaticamente a cada 30 segundos
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CS2 Server Status Integration -->
+    <script type="module" src="./src/server-config.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Iniciando teste de integração...');
+            
+            // Update last update time periodically
+            setInterval(() => {
+                const lastUpdateElement = document.getElementById('last-update');
+                if (lastUpdateElement) {
+                    lastUpdateElement.textContent = new Date().toLocaleTimeString();
+                }
+            }, 1000);
+            
+            // Listen for server status updates
+            window.addEventListener('serverStatusUpdate', (event) => {
+                console.log('📊 Server status update received:', event.detail);
+                
+                const data = event.detail;
+                if (data.status === 'unknown') {
+                    console.log('✅ Sistema funcionando corretamente - mostrando status DESCONHECIDO');
+                } else if (data.status === 'offline') {
+                    console.log('🔴 Servidor detectado como OFFLINE');
+                } else if (data.status === 'online') {
+                    console.log('🟢 Servidor detectado como ONLINE');
+                }
+            });
+            
+            // Test controls
+            document.getElementById('test-refresh').addEventListener('click', () => {
+                if (window.serverStatusManager) {
+                    window.serverStatusManager.refreshNow();
+                }
+            });
+            
+            document.getElementById('test-toggle').addEventListener('click', (e) => {
+                if (window.serverStatusManager) {
+                    if (window.serverStatusManager.serverStatus.isAutoUpdating()) {
+                        window.serverStatusManager.stop();
+                        e.target.textContent = 'Iniciar Atualizações';
+                        e.target.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium transition-colors';
+                    } else {
+                        window.serverStatusManager.start();
+                        e.target.textContent = 'Parar Atualizações';
+                        e.target.className = 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium transition-colors';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

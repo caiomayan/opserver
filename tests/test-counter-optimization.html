@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Final - Otimização Counter Timing</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .counter-display {
+            font-size: 72px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+        .counter-display.active {
+            color: #22c55e;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .status-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #6b7280;
+            transition: all 0.3s ease;
+        }
+        .status-dot.online { background: #22c55e; animation: pulse 2s infinite; }
+        .status-dot.offline { background: #ef4444; }
+        .status-dot.unknown { background: #6b7280; animation: pulse-slow 3s infinite; }
+        .status-dot.vpn { background: #f59e0b; animation: pulse-vpn 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+        @keyframes pulse-vpn {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        .timing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .timing-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .timing-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .timing-label {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-success { color: #22c55e; }
+        .log-warning { color: #f59e0b; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #3b82f6; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button.success {
+            background: #22c55e;
+        }
+        button.success:hover {
+            background: #16a34a;
+        }
+        button.warning {
+            background: #f59e0b;
+        }
+        button.warning:hover {
+            background: #d97706;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Teste Final - Otimização Counter Timing</h1>
+        
+        <div class="section">
+            <h2>📊 Contador Principal (Simulação Main Page)</h2>
+            <div class="counter-display" id="main-counter">00</div>
+            <div class="status-indicator">
+                <div class="status-dot" id="main-status-dot"></div>
+                <span id="main-status-text">Inicializando...</span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div style="text-align: center; font-size: 12px; color: #9ca3af;">
+                Progresso da primeira detecção
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⏱️ Métricas de Performance</h2>
+            <div class="timing-grid">
+                <div class="timing-card">
+                    <div class="timing-value" id="init-time">--</div>
+                    <div class="timing-label">Tempo Inicialização</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="first-update-time">--</div>
+                    <div class="timing-label">Primeira Atualização</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="counter-response-time">--</div>
+                    <div class="timing-label">Resposta do Contador</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="total-events">0</div>
+                    <div class="timing-label">Total de Eventos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Configurações Otimizadas</h2>
+            <div class="timing-grid">
+                <div class="timing-card">
+                    <div class="timing-value" id="update-interval">15s</div>
+                    <div class="timing-label">Intervalo Normal</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="fast-interval">3s</div>
+                    <div class="timing-label">Intervalo Rápido</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="fast-duration">30s</div>
+                    <div class="timing-label">Duração Rápida</div>
+                </div>
+                <div class="timing-card">
+                    <div class="timing-value" id="init-delay">300ms</div>
+                    <div class="timing-label">Delay Inicialização</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Controles de Teste</h2>
+            <div class="controls">
+                <button onclick="startTest()" id="start-btn">Iniciar Teste</button>
+                <button onclick="simulateOnline()" class="success">Simular Online</button>
+                <button onclick="simulateVPN()" class="warning">Simular VPN</button>
+                <button onclick="simulateOffline()">Simular Offline</button>
+                <button onclick="resetTest()">Reset</button>
+                <button onclick="runPerformanceTest()">Teste de Performance</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Log de Eventos</h2>
+            <div class="log-container" id="log-container"></div>
+        </div>
+    </div>
+
+    <!-- Include optimized scripts -->
+    <script src="./src/server-cache.js"></script>
+    <script type="module" src="./src/cs2-server-status.js"></script>
+
+    <script>
+        class CounterTimingTester {
+            constructor() {
+                this.startTime = Date.now();
+                this.initTime = null;
+                this.firstUpdateTime = null;
+                this.counterResponseTime = null;
+                this.eventCount = 0;
+                this.testPhase = 'idle';
+                this.logs = [];
+                this.maxLogs = 50;
+                
+                this.init();
+            }
+
+            init() {
+                this.log('🚀 Tester inicializado', 'info');
+                this.setupEventListeners();
+                this.updateDisplay();
+                
+                // Monitor when systems become available
+                this.waitForSystems();
+            }
+
+            waitForSystems() {
+                const checkSystems = () => {
+                    if (window.cs2ServerStatus && window.mainPageServerStatus) {
+                        this.initTime = Date.now() - this.startTime;
+                        this.log(`✅ Sistemas carregados em ${this.initTime}ms`, 'success');
+                        this.updateTimingDisplay();
+                        
+                        // Start automatic testing
+                        setTimeout(() => {
+                            this.startAutomaticTest();
+                        }, 1000);
+                        
+                        return;
+                    }
+                    
+                    // Check again in 100ms
+                    setTimeout(checkSystems, 100);
+                };
+                
+                checkSystems();
+            }
+
+            setupEventListeners() {
+                // Listen for server status updates
+                window.addEventListener('serverStatusUpdate', (event) => {
+                    this.eventCount++;
+                    
+                    if (!this.firstUpdateTime) {
+                        this.firstUpdateTime = Date.now() - this.startTime;
+                        this.log(`🎯 Primeira atualização em ${this.firstUpdateTime}ms`, 'success');
+                    }
+                    
+                    this.handleServerUpdate(event.detail);
+                });
+
+                // Listen for VPN detection
+                document.addEventListener('vpnServerDetected', (event) => {
+                    this.eventCount++;
+                    this.log(`🔌 VPN detectado: ${JSON.stringify(event.detail)}`, 'warning');
+                    this.handleVPNDetection(event.detail);
+                });
+
+                // Monitor DOM changes to counter
+                this.observeCounterChanges();
+            }
+
+            observeCounterChanges() {
+                const counter = document.getElementById('main-counter');
+                if (counter) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                if (!this.counterResponseTime && counter.textContent !== '00') {
+                                    this.counterResponseTime = Date.now() - this.startTime;
+                                    this.log(`⚡ Contador respondeu em ${this.counterResponseTime}ms`, 'success');
+                                    this.updateTimingDisplay();
+                                }
+                            }
+                        });
+                    });
+                    
+                    observer.observe(counter, { 
+                        childList: true, 
+                        subtree: true, 
+                        characterData: true 
+                    });
+                }
+            }
+
+            handleServerUpdate(serverData) {
+                this.log(`📊 Server update: ${serverData.status}`, 'info');
+                this.updateCounter(serverData);
+                this.updateStatusIndicator(serverData.status);
+                this.updateTimingDisplay();
+            }
+
+            handleVPNDetection(vpnData) {
+                this.log(`🔌 VPN detection: ${vpnData.ip || 'unknown IP'}`, 'warning');
+                this.updateCounter({ status: 'vpn' });
+                this.updateStatusIndicator('vpn');
+            }
+
+            updateCounter(serverData) {
+                const counter = document.getElementById('main-counter');
+                const isActive = serverData.status === 'online' || serverData.status === 'vpn';
+                
+                counter.textContent = isActive ? '01' : '00';
+                counter.className = `counter-display ${isActive ? 'active' : ''}`;
+            }
+
+            updateStatusIndicator(status) {
+                const dot = document.getElementById('main-status-dot');
+                const text = document.getElementById('main-status-text');
+                
+                dot.className = `status-dot ${status}`;
+                
+                const statusTexts = {
+                    online: 'Online',
+                    offline: 'Offline',
+                    unknown: 'Verificando...',
+                    vpn: 'Servidor VPN'
+                };
+                
+                text.textContent = statusTexts[status] || 'Desconhecido';
+            }
+
+            updateTimingDisplay() {
+                document.getElementById('init-time').textContent = 
+                    this.initTime ? `${this.initTime}ms` : '--';
+                document.getElementById('first-update-time').textContent = 
+                    this.firstUpdateTime ? `${this.firstUpdateTime}ms` : '--';
+                document.getElementById('counter-response-time').textContent = 
+                    this.counterResponseTime ? `${this.counterResponseTime}ms` : '--';
+                document.getElementById('total-events').textContent = this.eventCount;
+
+                // Update progress bar
+                if (this.firstUpdateTime) {
+                    const progress = Math.min((this.firstUpdateTime / 5000) * 100, 100);
+                    document.getElementById('progress-fill').style.width = `${progress}%`;
+                }
+            }
+
+            startAutomaticTest() {
+                this.log('🔄 Iniciando teste automático...', 'info');
+                this.testPhase = 'running';
+                
+                // Simulate automatic detection
+                setTimeout(() => {
+                    if (this.eventCount === 0) {
+                        this.log('⚠️ Nenhum evento detectado, forçando atualização manual', 'warning');
+                        this.simulateOnline();
+                    }
+                }, 8000);
+            }
+
+            // Control methods
+            startTest() {
+                this.log('🎬 Teste manual iniciado', 'info');
+                this.testPhase = 'manual';
+                
+                if (window.cs2ServerStatus) {
+                    window.cs2ServerStatus.fetchServerData()
+                        .then(data => {
+                            this.log(`✅ Fetch manual bem-sucedido: ${data.status}`, 'success');
+                        })
+                        .catch(error => {
+                            this.log(`❌ Erro no fetch manual: ${error.message}`, 'error');
+                        });
+                }
+            }
+
+            simulateOnline() {
+                this.log('🟢 Simulando servidor online', 'success');
+                const onlineData = { 
+                    status: 'online', 
+                    players: { current: 5, max: 32 },
+                    map: 'de_dust2'
+                };
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: onlineData }));
+            }
+
+            simulateVPN() {
+                this.log('🟡 Simulando servidor VPN', 'warning');
+                const vpnData = { 
+                    status: 'vpn', 
+                    ip: '26.115.124.39',
+                    players: { current: 3, max: 32 }
+                };
+                document.dispatchEvent(new CustomEvent('vpnServerDetected', { detail: vpnData }));
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: vpnData }));
+            }
+
+            simulateOffline() {
+                this.log('🔴 Simulando servidor offline', 'error');
+                const offlineData = { status: 'offline' };
+                window.dispatchEvent(new CustomEvent('serverStatusUpdate', { detail: offlineData }));
+            }
+
+            resetTest() {
+                this.log('🔄 Reset do teste', 'info');
+                this.startTime = Date.now();
+                this.initTime = null;
+                this.firstUpdateTime = null;
+                this.counterResponseTime = null;
+                this.eventCount = 0;
+                this.testPhase = 'idle';
+                
+                // Reset UI
+                document.getElementById('main-counter').textContent = '00';
+                document.getElementById('main-counter').className = 'counter-display';
+                document.getElementById('main-status-dot').className = 'status-dot';
+                document.getElementById('main-status-text').textContent = 'Reset';
+                document.getElementById('progress-fill').style.width = '0%';
+                
+                this.updateTimingDisplay();
+            }
+
+            runPerformanceTest() {
+                this.log('⚡ Iniciando teste de performance...', 'info');
+                const iterations = 10;
+                let completedIterations = 0;
+                let totalTime = 0;
+
+                const runIteration = () => {
+                    const iterationStart = Date.now();
+                    
+                    this.simulateOnline();
+                    
+                    setTimeout(() => {
+                        const iterationTime = Date.now() - iterationStart;
+                        totalTime += iterationTime;
+                        completedIterations++;
+                        
+                        this.log(`📊 Iteração ${completedIterations}: ${iterationTime}ms`, 'info');
+                        
+                        if (completedIterations < iterations) {
+                            setTimeout(runIteration, 100);
+                        } else {
+                            const averageTime = totalTime / iterations;
+                            this.log(`🏁 Teste concluído! Tempo médio: ${averageTime.toFixed(2)}ms`, 'success');
+                        }
+                    }, 50);
+                };
+
+                runIteration();
+            }
+
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const timeSinceStart = Date.now() - this.startTime;
+                
+                const entry = {
+                    timestamp,
+                    timeSinceStart,
+                    message,
+                    type
+                };
+                
+                this.logs.push(entry);
+                
+                // Keep only last maxLogs entries
+                if (this.logs.length > this.maxLogs) {
+                    this.logs = this.logs.slice(-this.maxLogs);
+                }
+                
+                this.updateLogDisplay();
+                console.log(`[${timestamp}] +${timeSinceStart}ms: ${message}`);
+            }
+
+            updateLogDisplay() {
+                const container = document.getElementById('log-container');
+                container.innerHTML = this.logs.map(entry => `
+                    <div class="log-entry log-${entry.type}">
+                        [${entry.timestamp}] +${entry.timeSinceStart}ms: ${entry.message}
+                    </div>
+                `).join('');
+                
+                container.scrollTop = container.scrollHeight;
+            }
+
+            updateDisplay() {
+                // Update configuration display
+                if (window.cs2ServerStatus && window.cs2ServerStatus.config) {
+                    const config = window.cs2ServerStatus.config;
+                    document.getElementById('update-interval').textContent = `${config.UPDATE_INTERVAL/1000}s`;
+                    document.getElementById('fast-interval').textContent = `${config.FAST_INITIAL_INTERVAL/1000}s`;
+                    document.getElementById('fast-duration').textContent = `${config.INITIAL_FAST_DURATION/1000}s`;
+                }
+            }
+        }
+
+        // Global functions for buttons
+        let tester;
+        
+        function startTest() {
+            tester?.startTest();
+        }
+        
+        function simulateOnline() {
+            tester?.simulateOnline();
+        }
+        
+        function simulateVPN() {
+            tester?.simulateVPN();
+        }
+        
+        function simulateOffline() {
+            tester?.simulateOffline();
+        }
+        
+        function resetTest() {
+            tester?.resetTest();
+        }
+        
+        function runPerformanceTest() {
+            tester?.runPerformanceTest();
+        }
+
+        // Initialize tester when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for other scripts to load
+            setTimeout(() => {
+                tester = new CounterTimingTester();
+            }, 200);
+        });
+    </script>
+</body>
+</html>
