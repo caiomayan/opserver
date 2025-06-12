@@ -34,11 +34,11 @@ Edite o arquivo `src/server-config.js`:
 ```javascript
 export const SERVER_CONFIG = {
   // Cole sua Steam API Key aqui
-  STEAM_API_KEY: 'SUA_API_KEY_AQUI',
+  STEAM_API_KEY: process.env.STEAM_API_KEY || '',
   
   // Configurações do servidor CS2
-  SERVER_IP: '26.115.124.39',
-  SERVER_PORT: '27015',
+  SERVER_IP: process.env.SERVER_IP || '127.0.0.1',
+  SERVER_PORT: process.env.SERVER_PORT || '27015',
   
   // ... outras configurações
 };

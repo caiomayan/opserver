@@ -1,16 +1,18 @@
 /**
  * Configurações do CS2 Server Status
  * Centralizando todas as configurações de API e servidor
+ * Utiliza variáveis de ambiente para dados sensíveis
  */
 
 // Configurações principais
 export const SERVER_CONFIG = {
   // Configurações da Steam Web API
-  STEAM_API_KEY: '1270A62C1573C745CB26B8526242F0BD', // Cole sua Steam API Key aqui quando obtiver
+  // Usa variáveis de ambiente definidas no .env para segurança
+  STEAM_API_KEY: process.env.STEAM_API_KEY || '', 
   
   // Configurações do servidor CS2
-  SERVER_IP: '26.115.124.39',
-  SERVER_PORT: '27015',
+  SERVER_IP: process.env.SERVER_IP || '127.0.0.1',
+  SERVER_PORT: process.env.SERVER_PORT || '27015',
   
   // Configurações de atualização
   UPDATE_INTERVAL: 30000, // 30 segundos

@@ -5,10 +5,11 @@
  */
 
 // Default configuration - Optimized for faster response
+// Usando variáveis de ambiente para dados sensíveis
 const DEFAULT_CONFIG = {
-  STEAM_API_KEY: '1270A62C1573C745CB26B8526242F0BD',
-  SERVER_IP: '26.115.124.39',
-  SERVER_PORT: '27015',
+  STEAM_API_KEY: process.env.STEAM_API_KEY || '',
+  SERVER_IP: process.env.SERVER_IP || '127.0.0.1',
+  SERVER_PORT: process.env.SERVER_PORT || '27015',
   UPDATE_INTERVAL: 15000,          // Reduced from 30s to 15s for faster updates
   FAST_INITIAL_INTERVAL: 3000,     // Fast polling for first 30 seconds
   INITIAL_FAST_DURATION: 30000,    // Duration of fast polling
