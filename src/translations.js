@@ -295,7 +295,5 @@ document.addEventListener('DOMContentLoaded', () => {
   window.TranslationSystem = new TranslationSystem();
 });
 
-// Exporta para uso em outros arquivos
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = TranslationSystem;
-}
+// Exporta para uso em outros arquivos (ES6 modules)
+export default TranslationSystem;
