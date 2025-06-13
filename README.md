@@ -6,11 +6,12 @@ OpServer é uma plataforma para gerenciamento e monitoramento de servidores Coun
 
 ## Funcionalidades
 - Monitoramento em tempo real do status dos servidores
-- Integração com a Steam Web API
-- Sistema de cache para melhorar performance
-- Detecção de servidores VPN
+- Integração com a Steam Web API para dados reais dos servidores
+- Sistema de cache para melhorar performance e reduzir chamadas à API
+- Detecção inteligente de servidores VPN/redes privadas
 - Suporte multi-idioma (PT/EN)
-- Interface responsiva
+- Interface responsiva e moderna
+- Visualização dinâmica de mapas e status do servidor
 
 ## Instalação
 
@@ -58,9 +59,19 @@ Os arquivos serão gerados na pasta `dist/`.
 
 ## Estrutura do Projeto
 - `/src` - Código fonte principal
+  - `/modules` - Módulos funcionais do sistema
+  - `/utils` - Utilidades e funções auxiliares
+  - `/config` - Configurações do sistema
 - `/public` - Assets estáticos
-- `/docs` - Documentação
-- `/tests` - Arquivos de teste
+  - `/img` - Imagens e ícones
+  - `/img/maps` - Imagens dos mapas de CS2
+- `/docs` - Documentação detalhada do sistema
+- `/tests` - Arquivos de teste e validação
+
+## Atualizações Recentes
+- **Junho 2025**: Implementação de dados reais do servidor com integração completa à API Steam
+- **Maio 2025**: Correção na detecção de VPN para identificar corretamente redes privadas
+- **Abril 2025**: Adição de suporte a variáveis de ambiente para maior segurança
 
 ## Licença
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE.md](LICENSE.md) para detalhes.

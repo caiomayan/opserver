@@ -68,8 +68,7 @@ async function loadConfiguration() {
   }
 }
 
-class CS2ServerStatus {
-  constructor(config = {}) {
+class CS2ServerStatus {  constructor(config = {}) {
     // Initialize with default config first
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.configLoaded = false;
@@ -90,13 +89,14 @@ class CS2ServerStatus {
       ping: null,
       gameMode: '?',
       secure: true
-    };
-
-    // Bind methods
+    };    // Bind methods
     this.fetchServerData = this.fetchServerData.bind(this);
     this.startAutoUpdate = this.startAutoUpdate.bind(this);
     this.stopAutoUpdate = this.stopAutoUpdate.bind(this);
     this.updateUI = this.updateUI.bind(this);
+    this.updateServerRegion = this.updateServerRegion.bind(this);
+    this.updateConnectionDetails = this.updateConnectionDetails.bind(this);
+    this.updateServerTitle = this.updateServerTitle.bind(this);
 
     console.log('CS2ServerStatus initialized with cache support');
     
@@ -104,10 +104,14 @@ class CS2ServerStatus {
     this.setupLanguageChangeListener();
     
     // Load configuration asynchronously
-    this.loadConfig();
+    this.loadConfig().then(() => {
+      // Initialize server region and connection details after config is loaded
+      this.updateServerRegion();
+      this.updateConnectionDetails();
+      this.updateServerTitle();
+    });
   }
-  
-  async loadConfig() {
+    async loadConfig() {
     try {
       const loaded = await loadConfiguration();
       if (loaded) {
@@ -118,8 +122,10 @@ class CS2ServerStatus {
       } else {
         console.log('📄 CS2ServerStatus using default config');
       }
+      return this.config;
     } catch (error) {
       console.warn('⚠️ Error loading config:', error);
+      return this.config;
     }
   }
   /**
@@ -235,10 +241,8 @@ class CS2ServerStatus {
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('📊 Steam API Response:', data);
+      }      const data = await response.json();
+      console.log('📊 Steam API Response:', JSON.stringify(data, null, 2));
 
       // Process successful response
       return this.processApiResponse(data);
@@ -304,34 +308,143 @@ class CS2ServerStatus {
       lastUpdate: new Date().toISOString(),
       fromCache: false
     };
-  }
-
-  /**
+  }  /**
    * Process Steam API response
    */
   processApiResponse(data) {
-    // Simulate API processing - replace with actual logic
-    return {
-      name: 'A GREAT CHAOS 01',
-      map: 'de_dust2',
-      players: { current: Math.floor(Math.random() * 20), max: 32 },
-      status: 'online',
-      ping: Math.floor(Math.random() * 100) + 20,
-      gameMode: 'Competitive',
-      secure: true,
-      lastUpdate: new Date().toISOString(),
-      fromCache: false
-    };
+    console.log('🔍 Processing API response data structure');
+    
+    try {
+      // Se estamos usando o CORS proxy, o resultado real pode estar dentro de propriedade 'contents'
+      const apiData = data.contents ? JSON.parse(data.contents) : data;
+      
+      // Verificar se temos a estrutura esperada da API da Steam
+      if (!apiData || !apiData.response || !apiData.response.servers || !apiData.response.servers.length) {
+        console.warn('⚠️ Resposta da API sem servidores:', apiData);
+        return this.getOfflineServerData();
+      }
+      
+      // Pegar o primeiro servidor da lista
+      const serverInfo = apiData.response.servers[0];
+      console.log('📊 Dados do servidor encontrado:', JSON.stringify(serverInfo, null, 2));
+      
+      return {
+        name: serverInfo.name || 'A GREAT CHAOS 01',
+        map: serverInfo.map || 'Unknown',
+        players: { 
+          current: serverInfo.players || 0, 
+          max: serverInfo.max_players || 32 
+        },
+        status: 'online',
+        ping: serverInfo.ping || 50,
+        gameMode: this.mapGameMode(serverInfo.game_type) || 'Competitive',
+        secure: serverInfo.secure == 1,
+        lastUpdate: new Date().toISOString(),
+        fromCache: false
+      };
+    } catch (error) {
+      console.error('❌ Erro ao processar resposta da API:', error);
+      return this.getOfflineServerData();
+    }
   }
-
+  
   /**
-   * Check if IP is in VPN range
+   * Map game type to user-friendly game mode
+   */
+  mapGameMode(gameType) {
+    if (!gameType) return 'Competitive';
+    
+    const modeMap = {
+      'competitive': 'Competitive',
+      'casual': 'Casual',
+      'deathmatch': 'Deathmatch',
+      'armsrace': 'Arms Race',
+      'demolition': 'Demolition',
+      'dangerzone': 'Danger Zone',
+      'custom': 'Custom'
+    };
+    
+    const normalizedType = gameType.toLowerCase();
+    return modeMap[normalizedType] || 'Competitive';
+  }
+  /**
+   * Check if IP is in private network range (RFC 1918, RFC 6598)
    */
   isPrivateNetworkIP(ip) {
     if (!ip || typeof ip !== 'string') return false;
-    return ip.startsWith('26.');
+    
+    // Split IP into octets
+    const octets = ip.split('.');
+    if (octets.length !== 4) return false;
+    
+    // Convert to numbers
+    const o1 = parseInt(octets[0], 10);
+    const o2 = parseInt(octets[1], 10);
+    const o3 = parseInt(octets[2], 10);
+    
+    // Check for private IP ranges:
+    
+    // 10.0.0.0 - 10.255.255.255 (10/8 prefix)
+    if (o1 === 10) return true;
+    
+    // 172.16.0.0 - 172.31.255.255 (172.16/12 prefix)
+    if (o1 === 172 && o2 >= 16 && o2 <= 31) return true;
+    
+    // 192.168.0.0 - 192.168.255.255 (192.168/16 prefix)
+    if (o1 === 192 && o2 === 168) return true;
+    
+    // 100.64.0.0 - 100.127.255.255 (100.64/10 prefix, Carrier-grade NAT)
+    if (o1 === 100 && o2 >= 64 && o2 <= 127) return true;
+    
+    // 127.0.0.0 - 127.255.255.255 (Loopback)
+    if (o1 === 127) return true;
+    
+    // Add specific check for the known VPN IP if it's different than the configured server IP
+    const configuredServerIP = this.config.SERVER_IP;
+    if (configuredServerIP && ip === configuredServerIP) {
+      // This is the configured server, so it's not a VPN
+      return false;
+    }
+    
+    return false;
   }
-
+  /**
+   * Map name to image path
+   */
+  getMapImagePath(mapName) {
+    if (!mapName || mapName === '?') return './public/img/maps/unknown.svg';
+    
+    // Normalizar o nome do mapa (remover prefixos, espaços, etc.)
+    let mapLower = mapName.toLowerCase().trim();
+    
+    // Checar se é apenas o nome sem prefixo (ex: "mirage" em vez de "de_mirage")
+    if (!mapLower.includes('_')) {
+      // Tentar adicionar o prefixo de_ se não tiver
+      const withPrefix = 'de_' + mapLower;
+      mapLower = withPrefix;
+    }
+    
+    // Lista de imagens de mapas disponíveis
+    const mapImages = {
+      'de_dust2': './public/img/maps/dust2.svg',
+      'de_mirage': './public/img/maps/mirage.svg',
+      'de_inferno': './public/img/maps/inferno.svg',
+      'de_nuke': './public/img/maps/unknown.svg',
+      'de_overpass': './public/img/maps/unknown.svg',
+      'de_vertigo': './public/img/maps/unknown.svg',
+      'de_ancient': './public/img/maps/unknown.svg'
+    };
+    
+    // Verificar se temos imagem para este mapa
+    const mapPath = mapImages[mapLower];
+    
+    // Log para debug de imagens de mapas
+    console.log(`🗺️ Mapa solicitado: "${mapName}" → normalizado: "${mapLower}" → caminho: "${mapPath || 'não encontrado'}"`);
+    
+    // Retornar o caminho da imagem ou o padrão "unknown" se não encontrado
+    return mapPath || './public/img/maps/unknown.svg';
+  }
+  
   /**
    * Get VPN server data
    */
@@ -440,9 +553,7 @@ class CS2ServerStatus {
     }
     this.isUpdating = false;
     console.log('⏹️ Auto-update stopped');
-  }
-
-  /**
+  }  /**
    * Update UI elements
    */
   updateUI(data) {
@@ -451,6 +562,9 @@ class CS2ServerStatus {
     this.updatePlayerCount(data);
     this.updateGameMode(data);
     this.updateTechnicalInfo(data);
+    this.updateMapImage(data);
+    this.updateServerRegion();
+    this.updateConnectionDetails();
     this.updateLastUpdateTime();
   }
 
@@ -479,6 +593,59 @@ class CS2ServerStatus {
     const mapElement = document.getElementById('server-map');
     if (mapElement) {
       mapElement.textContent = data.map || '?';
+    }
+    
+    // Atualizar também o nome do mapa na seção de imagem
+    const mapNameElement = document.getElementById('current-map-name');
+    if (mapNameElement) {
+      mapNameElement.textContent = data.map || '?';
+    }
+  }
+    /**
+   * Update map image
+   */
+  updateMapImage(data) {
+    const mapImage = document.getElementById('current-map-image');
+    const loadingText = document.querySelector('[data-translate="servers.map.loading"]');
+    
+    if (mapImage) {
+      const imagePath = this.getMapImagePath(data.map);
+      console.log(`🖼️ Atualizando imagem do mapa para: ${data.map} (${imagePath})`);
+      
+      // Aplicar fade-out/fade-in para transição suave
+      mapImage.style.opacity = '0.3';
+      
+      // Verificar se o mapa é conhecido e tem imagem personalizada
+      const isKnownMap = data.map && data.map !== '?' && !imagePath.includes('unknown.svg');
+      
+      // Criar nova imagem para verificar se carrega corretamente
+      const img = new Image();
+      img.onload = () => {
+        // Imagem carregou com sucesso
+        mapImage.src = imagePath;
+        mapImage.style.opacity = '1';
+        
+        // Esconder o texto de carregamento quando o mapa for conhecido
+        if (loadingText && isKnownMap) {
+          loadingText.style.display = 'none';
+        } else if (loadingText) {
+          loadingText.style.display = 'block';
+        }
+      };
+      
+      img.onerror = () => {
+        // Falha ao carregar - usar imagem padrão
+        mapImage.src = './public/img/maps/unknown.svg';
+        mapImage.style.opacity = '1';
+        
+        // Mostrar o texto de carregamento em caso de erro
+        if (loadingText) {
+          loadingText.style.display = 'block';
+        }
+      };
+      
+      // Iniciar carregamento da imagem
+      img.src = imagePath;
     }
   }
 
@@ -584,6 +751,95 @@ class CS2ServerStatus {
     console.log('🔧 Configuration updated:', this.config);
   }
 
+  /**
+   * Update server region based on IP address
+   * Displays only the country flag without "João Pessoa, PB" text
+   */
+  updateServerRegion() {
+    try {
+      const regionFlagElement = document.querySelector('.fi');
+      const regionTextElement = document.querySelector('[data-translate="general.location"]');
+      
+      if (regionFlagElement && this.config.SERVER_IP) {
+        // Detect country code from IP using the ConfigUtils helper
+        let countryCode = 'br'; // Default
+        
+        if (typeof ConfigUtils !== 'undefined' && ConfigUtils.detectCountryFromIP) {
+          countryCode = ConfigUtils.detectCountryFromIP(this.config.SERVER_IP);
+        }
+        
+        // Update flag class
+        regionFlagElement.className = '';
+        regionFlagElement.classList.add('fi', `fi-${countryCode}`);
+        
+        // Hide the location text since we only want to show the flag
+        if (regionTextElement) {
+          regionTextElement.style.display = 'none';
+        }
+        
+        console.log(`🌍 Region updated: ${countryCode} (IP: ${this.config.SERVER_IP})`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating server region:', error);
+    }
+  }
+
+  /**
+   * Update connection details with dynamic IP and port
+   * Updates both the Steam connect button and copyable IP field
+   */
+  updateConnectionDetails() {
+    try {
+      // Get configuration values
+      const serverIP = this.config.SERVER_IP || '127.0.0.1';
+      const serverPort = this.config.SERVER_PORT || '27015';
+      const fullAddress = `${serverIP}:${serverPort}`;
+      
+      // Update Steam connect button
+      const steamConnectButton = document.querySelector('button[onclick^="window.open(\'steam://connect/"]');
+      if (steamConnectButton) {
+        const newOnClick = `window.open('steam://connect/${fullAddress}', '_blank')`;
+        steamConnectButton.setAttribute('onclick', newOnClick);
+      }
+      
+      // Update copyable IP field
+      const serverIPInput = document.getElementById('serverIP1');
+      if (serverIPInput) {
+        serverIPInput.value = `connect ${fullAddress}`;
+      }
+      
+      console.log(`🔌 Connection details updated to ${fullAddress}`);
+    } catch (error) {
+      console.error('❌ Error updating connection details:', error);
+    }
+  }
+  
+  /**
+   * Update server title based on IP configuration
+   * Makes the server title dynamic based on the server IP
+   */
+  updateServerTitle() {
+    try {
+      const serverIP = this.config.SERVER_IP || '127.0.0.1';
+      const serverTitleElement = document.querySelector('[data-translate="servers.server.title"]');
+      
+      if (serverTitleElement && serverIP) {
+        // Get dynamic title based on IP using ConfigUtils helper
+        let serverTitle = 'A GREAT CHAOS 01'; // Default
+        
+        if (typeof ConfigUtils !== 'undefined' && ConfigUtils.getServerTitle) {
+          serverTitle = ConfigUtils.getServerTitle(serverIP);
+        }
+        
+        // Update the title element
+        serverTitleElement.textContent = serverTitle;
+        
+        console.log(`📋 Server title updated to: ${serverTitle}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating server title:', error);
+    }
+  }
   /**
    * Handle language changes
    */

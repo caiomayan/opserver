@@ -15,12 +15,14 @@ export const SERVER_CONFIG = {
   SERVER_PORT: process.env.SERVER_PORT || '27015',
   
   // Configurações de atualização
-  UPDATE_INTERVAL: 30000, // 30 segundos
+  UPDATE_INTERVAL: parseInt(process.env.UPDATE_INTERVAL) || 30000, // 30 segundos
+  FAST_INITIAL_INTERVAL: parseInt(process.env.FAST_INITIAL_INTERVAL) || 3000,
+  INITIAL_FAST_DURATION: parseInt(process.env.INITIAL_FAST_DURATION) || 30000,
   MAX_RETRIES: 3,
   RETRY_DELAY: 5000, // 5 segundos
   
   // Configurações de rede
-  REQUEST_TIMEOUT: 10000, // 10 segundos
+  REQUEST_TIMEOUT: parseInt(process.env.REQUEST_TIMEOUT) || 10000, // 10 segundos
   CORS_PROXY: 'https://api.allorigins.win/get?url=', // Proxy para CORS
   
   // URLs da Steam API
@@ -28,9 +30,10 @@ export const SERVER_CONFIG = {
     SERVER_LIST: 'https://api.steampowered.com/IGameServersService/GetServerList/v1/',
     SERVER_INFO: 'https://api.steampowered.com/ISteamApps/GetServersAtAddress/v0001/'
   },    // Configurações de UI
-  DEBUG_MODE: false, // Desabilitado para produção - sem controles de debug
+  DEBUG_MODE: process.env.DEBUG_MODE === 'true' || false, // Desabilitado para produção - sem controles de debug
   SHOW_PING: true,
-  SHOW_LAST_UPDATE: false // Não mostrar informações de debug
+  SHOW_LAST_UPDATE: false, // Não mostrar informações de debug
+  VERBOSE_LOGGING: process.env.VERBOSE_LOGGING === 'true' || false
 };
 
 // Configurações específicas para desenvolvimento
@@ -99,6 +102,43 @@ export const ConfigUtils = {
     SERVER_CONFIG.STEAM_API_KEY = apiKey;
     console.log('Steam API Key updated');
   },
+    /**
+   * Detecta o código do país a partir de um endereço IP
+   * Implementação simples baseada em faixas comuns de IPs brasileiros
+   * Retorna o código ISO do país (br, us, etc)
+   */
+  detectCountryFromIP(ip) {
+    if (!ip) return 'br'; // Default para Brasil
+    
+    // Verificar se está usando o IP do .env
+    if (ip === SERVER_CONFIG.SERVER_IP) {
+      // IP do servidor configurado no .env - detectar país
+      // Simplificação: verificar faixas de IP comuns
+      const octets = ip.split('.');
+      if (octets.length !== 4) return 'br';
+      
+      const o1 = parseInt(octets[0], 10);
+      
+      // Alguns IPs comuns do Brasil (isso é uma simplificação)
+      // 177.x.x.x, 179.x.x.x, 186.x.x.x, 187.x.x.x, 189.x.x.x, 191.x.x.x, 200.x.x.x, 201.x.x.x
+      const brRanges = [177, 179, 186, 187, 189, 191, 200, 201];
+      if (brRanges.includes(o1)) return 'br';
+      
+      // IPs americanos comuns
+      // 50-79.x.x.x
+      if (o1 >= 50 && o1 <= 79) return 'us';
+      
+      // IPs europeus comuns
+      // 80-95.x.x.x
+      if (o1 >= 80 && o1 <= 95) return 'eu';
+    }
+    
+    // Alguns outros casos específicos
+    if (ip === '177.54.147.46') return 'br';
+    if (ip === '127.0.0.1' || ip === 'localhost') return 'br';
+    
+    return 'br'; // Padrão para o Brasil
+  },
   
   /**
    * Obtém URL completa da Steam API
@@ -120,5 +160,28 @@ export const ConfigUtils = {
   shouldUseMockData() {
     // Nunca usar mock - sempre tentar dados reais
     return false;
+  },
+  
+  /**
+   * Define o título do servidor com base no IP
+   * Retorna um título apropriado para o servidor
+   */
+  getServerTitle(ip) {
+    if (!ip) return 'A GREAT CHAOS 01';
+    
+    // Se for o IP principal do .env, fornecer o título principal
+    if (ip === SERVER_CONFIG.SERVER_IP) {
+      return 'A GREAT CHAOS 01';
+    }
+    
+    // Outros IPs conhecidos (podem ser expandidos conforme necessário)
+    const knownServers = {
+      '177.54.147.46': 'A GREAT CHAOS - PRINCIPAL',
+      '127.0.0.1': 'A GREAT CHAOS - LOCALHOST',
+      '192.168.1.1': 'A GREAT CHAOS - LAN',
+      // Adicionar mais servidores conforme necessário
+    };
+    
+    return knownServers[ip] || 'A GREAT CHAOS 01';
   }
 };

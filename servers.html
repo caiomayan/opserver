@@ -383,15 +383,14 @@
                                             <span class="text-white/60" data-translate="servers.server.mode">Modo</span>
                                             <span id="server-mode" class="font-mono" data-translate="general.unknown">?</span>
                                         </div>
-                                    </div>
-                                    <div class="space-y-4">
+                                    </div>                                    <div class="space-y-4">
                                         <div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60" data-translate="servers.server.region">Região</span>
                                             <span class="flex items-center space-x-2">
                                                 <span class="fi fi-br"></span>
-                                                <span data-translate="general.location">João Pessoa, PB</span>
+                                                <span data-translate="general.location" style="display: none;">João Pessoa, PB</span>
                                             </span>
-                                        </div>                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                                        </div><div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60">Tickrate</span>
                                             <span class="font-mono">128</span>
                                         </div>                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
@@ -399,10 +398,9 @@
                                             <span id="server-latency" class="font-mono" data-translate="general.unknown">?</span>
                                         </div>
                                     </div>
-                                </div><!-- Connection Section -->
-                                <div class="space-y-4 pt-4 fade-in">
+                                </div><!-- Connection Section -->                                <div class="space-y-4 pt-4 fade-in">
                                     <button
-                                        onclick="window.open('steam://connect/26.115.124.39:27015', '_blank')"
+                                        id="steam-connect-button"
                                         class="w-full bg-blue-600 hover:bg-white hover:text-black text-white py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center space-x-3 rounded-lg cursor-pointer"
                                     >
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -410,13 +408,12 @@
                                         </svg>
                                         <span data-translate="servers.server.connect">Conectar via Steam</span>
                                     </button>
-                                    
-                                    <div class="space-y-2">
+                                      <div class="space-y-2">
                                         <span class="text-white/60 text-sm" data-translate="servers.server.ip">IP do Servidor:</span>
                                         <div class="relative">
                                             <input 
                                                 type="password" 
-                                                value="connect 26.115.124.39:27015" 
+                                                value="connect 177.54.147.46:27044" 
                                                 readonly 
                                                 id="serverIP1"
                                                 class="w-full bg-black border border-white/20 px-4 py-3 pr-20 text-sm font-mono text-white/80 focus:outline-none rounded-lg"
@@ -726,5 +723,30 @@
     <!-- CS2 Server Status Integration -->
     <script type="module" src="./src/cs2-server-status.js"></script>
 
+    <!-- Initialize Steam connect button -->
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Steam connect button with dynamic server address
+            const steamConnectButton = document.getElementById('steam-connect-button');
+            if (steamConnectButton) {
+                // Default values (will be updated by CS2ServerStatus)
+                let serverIP = '177.54.147.46';
+                let serverPort = '27044';
+                
+                // Try to get values from environment variables if available
+                if (typeof process !== 'undefined' && process.env) {
+                    serverIP = process.env.SERVER_IP || serverIP;
+                    serverPort = process.env.SERVER_PORT || serverPort;
+                }
+                
+                const fullAddress = `${serverIP}:${serverPort}`;
+                steamConnectButton.addEventListener('click', function() {
+                    window.open(`steam://connect/${fullAddress}`, '_blank');
+                });
+                
+                console.log('🎮 Steam connect button initialized with address:', fullAddress);
+            }
+        });
+    </script>
 </body>
 </html>

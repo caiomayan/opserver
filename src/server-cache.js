@@ -321,13 +321,38 @@ class CachedServerStatusFetcher {
       };
     }
   }
-
   /**
-   * Check if IP is in VPN range (26.x.x.x)
+   * Check if IP is in private network range (RFC 1918, RFC 6598)
    */
   isPrivateNetworkIP(ip) {
     if (!ip || typeof ip !== 'string') return false;
-    return ip.startsWith('26.');
+    
+    // Split IP into octets
+    const octets = ip.split('.');
+    if (octets.length !== 4) return false;
+    
+    // Convert to numbers
+    const o1 = parseInt(octets[0], 10);
+    const o2 = parseInt(octets[1], 10);
+    
+    // Check for private IP ranges:
+    
+    // 10.0.0.0 - 10.255.255.255 (10/8 prefix)
+    if (o1 === 10) return true;
+    
+    // 172.16.0.0 - 172.31.255.255 (172.16/12 prefix)
+    if (o1 === 172 && o2 >= 16 && o2 <= 31) return true;
+    
+    // 192.168.0.0 - 192.168.255.255 (192.168/16 prefix)
+    if (o1 === 192 && o2 === 168) return true;
+    
+    // 100.64.0.0 - 100.127.255.255 (100.64/10 prefix, Carrier-grade NAT)
+    if (o1 === 100 && o2 >= 64 && o2 <= 127) return true;
+    
+    // 127.0.0.0 - 127.255.255.255 (Loopback)
+    if (o1 === 127) return true;
+    
+    return false;
   }
 
   /**
@@ -350,29 +375,65 @@ class CachedServerStatusFetcher {
       }
     }
   }
-
   /**
-   * Check server connectivity (placeholder implementation)
+   * Check server connectivity - implementação real com A2S Query
    */
   async checkServerConnectivity(ip, port) {
-    // This is a placeholder - replace with actual server checking logic
-    // For now, return mock data
-    return new Promise((resolve, reject) => {
-      // Simulate network delay
-      setTimeout(() => {
-        // Mock server response
-        const mockResponse = {
-          ip: ip,
-          port: port,
-          players: Math.floor(Math.random() * 20),
-          maxPlayers: 20,
-          map: 'de_dust2',
-          name: `CS2 Server ${ip}:${port}`
-        };
-        
-        resolve(mockResponse);
-      }, 100 + Math.random() * 200);
-    });
+    console.log(`🔍 Verificando conectividade real do servidor ${ip}:${port}...`);
+    
+    try {
+      // Usar CORS proxy para consultas cross-origin
+      const corsProxy = 'https://api.allorigins.win/get?url=';
+      
+      // Buscar informações do servidor utilizando a Steam Web API
+      const steamApiKey = process.env.STEAM_API_KEY || '1270A62C1573C745CB26B8526242F0BD'; // Usar variável de ambiente
+      const steamApiUrl = `https://api.steampowered.com/IGameServersService/GetServerList/v1/?key=${steamApiKey}&filter=addr\\${ip}:${port}`;
+      const apiUrl = `${corsProxy}${encodeURIComponent(steamApiUrl)}`;
+      
+      console.log(`🌐 Consultando API Steam: ${steamApiUrl}`);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(8000) // 8 segundos de timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('📊 Resposta da API Steam:', data);
+      
+      // Se estamos usando CORS proxy, o resultado real está em data.contents
+      const apiData = data.contents ? JSON.parse(data.contents) : data;
+      
+      if (!apiData || !apiData.response || !apiData.response.servers || !apiData.response.servers.length) {
+        console.warn('⚠️ Nenhum servidor encontrado na resposta da API');
+        throw new Error('Servidor não encontrado');
+      }
+      
+      // Usar os dados reais do primeiro servidor encontrado
+      const serverInfo = apiData.response.servers[0];
+      
+      return {
+        ip: ip,
+        port: port,
+        players: serverInfo.players || 0,
+        maxPlayers: serverInfo.max_players || 32,
+        map: serverInfo.map || '?',
+        name: serverInfo.name || `CS2 Server ${ip}:${port}`,
+        gameType: serverInfo.game_type || 'competitive',
+        ping: serverInfo.ping || 50,
+        secure: serverInfo.secure == 1
+      };
+    } catch (error) {
+      console.error(`❌ Falha ao verificar servidor ${ip}:${port}:`, error.message);
+      throw error;
+    }
   }
 
   /**
