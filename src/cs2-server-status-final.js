@@ -4,8 +4,10 @@
  */
 const DEFAULT_CONFIG = {
   STEAM_API_KEY: import.meta.env.VITE_STEAM_API_KEY || '',
-  SERVER_IP: import.meta.env.VITE_SERVER_IP || '127.0.0.1',
-  SERVER_PORT: import.meta.env.VITE_SERVER_PORT || '27015',
+  SERVER_IP: '177.54.144.181', // IP fixo do seu servidor
+  SERVER_PORT: '27084', // Porta fixa do seu servidor
+  SERVER_NAME: 'A GREAT CHAOS 01', // Nome fictício fixo
+  SERVER_REGION: 'Brasil', // Será atualizado dinamicamente pela geolocalização do IP
   UPDATE_INTERVAL: 30000,
   FAST_INITIAL_INTERVAL: 1500,
   INITIAL_FAST_DURATION: 8000,
@@ -34,7 +36,6 @@ const DEFAULT_GAME_MODES = {
 };
 
 // Configuration variables
-let SERVER_CONFIG = DEFAULT_CONFIG;
 let MAP_NAMES = DEFAULT_MAP_NAMES;
 let GAME_MODES = DEFAULT_GAME_MODES;
 let ConfigUtils = {
@@ -49,6 +50,8 @@ let ConfigUtils = {
   }
 };
 
+// Configuration helper functions
+// Configuration helper functions
 let getConfig = () => DEFAULT_CONFIG;
 
 class CS2ServerStatus {
@@ -144,9 +147,15 @@ class CS2ServerStatus {
     console.log('🚀 Initializing CS2 server status with config:', this.config);
     
     try {
+      // Use default hardcoded configuration
       this.configLoaded = true;
-      this.config = { ...this.config, ...getConfig() };
+      this.config = { ...this.config, ...DEFAULT_CONFIG };
       console.log('📋 Configuration loaded, server IP:', this.config.SERVER_IP);
+      
+      // Emit config loaded event for UI updates
+      document.dispatchEvent(new CustomEvent('serverConfigLoaded', {
+        detail: this.config
+      }));
       
       if (this.config.DEBUG_MODE) {
         const apiKey = this.config.STEAM_API_KEY;

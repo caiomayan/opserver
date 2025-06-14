@@ -383,12 +383,11 @@
                                             <span class="text-white/60" data-translate="servers.server.mode">Modo</span>
                                             <span id="server-mode" class="font-mono" data-translate="general.unknown">?</span>
                                         </div>
-                                    </div>                                    <div class="space-y-4">
-                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
+                                    </div>                                    <div class="space-y-4">                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60" data-translate="servers.server.region">Região</span>
                                             <span class="flex items-center space-x-2">
                                                 <span class="fi fi-br"></span>
-                                                <span data-translate="general.location" style="display: none;">João Pessoa, PB</span>
+                                                <span id="server-region">Brasil</span>
                                             </span>
                                         </div><div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60">Tickrate</span>
@@ -410,10 +409,9 @@
                                     </button>
                                       <div class="space-y-2">
                                         <span class="text-white/60 text-sm" data-translate="servers.server.ip">IP do Servidor:</span>
-                                        <div class="relative">
-                                            <input 
+                                        <div class="relative">                                            <input 
                                                 type="password" 
-                                                value="connect 177.54.147.46:27044" 
+                                                value="connect SERVER_IP:SERVER_PORT" 
                                                 readonly 
                                                 id="serverIP1"
                                                 class="w-full bg-black border border-white/20 px-4 py-3 pr-20 text-sm font-mono text-white/80 focus:outline-none rounded-lg"
@@ -719,16 +717,34 @@
 
     <!-- Server Cache System -->
     <script type="module" src="./src/server-cache.js"></script>    <!-- CS2 Server Status Integration -->
-    <script type="module" src="./src/cs2-server-status-final.js"></script>
-
-    <!-- VPN Detection Script -->
+    <script type="module" src="./src/cs2-server-status-final.js"></script>    <!-- VPN Detection Script -->
     <script type="module">
         // This script is now handled by the CS2ServerStatus class
         document.addEventListener('serverStatusUpdated', function(event) {
             // VPN detection is handled inside the CS2ServerStatus class
             console.log('Server status updated:', event.detail.status);
+            
+            // Update server IP when status is updated
+            updateServerIP(event.detail);
         });
-    </script>    <!-- Initialize Steam connect button -->
+        
+        // Listen for server config loaded event
+        document.addEventListener('serverConfigLoaded', function(event) {
+            updateServerIP(event.detail);
+        });
+        
+        function updateServerIP(config) {
+            const serverIPInput = document.getElementById('serverIP1');
+            if (serverIPInput && config) {
+                const ip = config.SERVER_IP || config.serverIP;
+                const port = config.SERVER_PORT || config.serverPort;
+                if (ip && port) {
+                    serverIPInput.value = `connect ${ip}:${port}`;
+                    console.log('🔧 Server IP updated:', `${ip}:${port}`);
+                }
+            }
+        }
+    </script><!-- Initialize Steam connect button -->
     <script type="module">
         // CS2ServerStatus now handles the Steam connect button initialization
         // This script is kept for backward compatibility
