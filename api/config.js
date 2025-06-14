@@ -6,7 +6,7 @@ export default function handler(req, res) {
   // Configurações SEGURAS (não sensíveis)
   const config = {
     SERVER_IP: process.env.SERVER_IP || '177.54.144.181',
-    SERVER_PORT: process.env.SERVER_PORT || '27084',
+    SERVER_PORT: process.env.SERVER_PORT || '27052',
     UPDATE_INTERVAL: 30000,
     DEBUG_MODE: process.env.NODE_ENV !== 'production',
     // SERVER_NAME e SERVER_REGION são determinados dinamicamente pelo frontend
