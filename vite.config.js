@@ -1,9 +1,5 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-import dotenv from 'dotenv';
-
-// Carrega variáveis de ambiente do arquivo .env
-dotenv.config();
 
 export default defineConfig({
   plugins: [
@@ -19,12 +15,7 @@ export default defineConfig({
       },
     },
   },
-  define: {
-    // Substitui placeholders em tempo de build com variáveis de ambiente
-    // Fornecendo valores vazios como fallback se não estiverem definidos
-    'process.env.STEAM_API_KEY': JSON.stringify(process.env.STEAM_API_KEY || ''),
-    'process.env.SERVER_IP': JSON.stringify(process.env.SERVER_IP || '127.0.0.1'),
-    'process.env.SERVER_PORT': JSON.stringify(process.env.SERVER_PORT || '27015'),
-  },
+  // Vite automatically exposes environment variables prefixed with VITE_
+  // No need to manually define them here
 });
 

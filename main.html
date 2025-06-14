@@ -445,13 +445,29 @@
               <div id="server-details" class="mt-4 text-xs text-white/40 opacity-0 transition-opacity duration-300">
                 <div>Status: <span id="main-server-status-text">Verificando...</span></div>
                 <div>Última atualização: <span id="main-last-update">-</span></div>
-              </div>
-                <!-- VPN Indicator for Main Page (hidden by default) -->
+              </div>                <!-- VPN Indicator for Main Page (hidden by default) -->
               <div id="main-vpn-indicator" class="mt-4 flex items-center justify-center space-x-1 text-xs text-amber-500 opacity-0 transition-opacity duration-300" style="display: none;">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
                 <span data-translate="main.status.vpn">Servidor VPN</span>
+              </div>
+
+              <!-- Hidden elements for CS2 server status script compatibility -->
+              <div style="display: none;">
+                <div id="server-status-dot"></div>
+                <div id="server-status-text"></div>
+                <div id="server-map"></div>
+                <div id="server-players"></div>
+                <div id="server-mode"></div>
+                <div id="server-latency"></div>
+                <div id="server-title"></div>
+                <div id="server-region"></div>
+                <div id="server-address"></div>
+                <div id="vpn-indicator"></div>
+                <img id="current-map-image" />
+                <div id="current-map-name"></div>
+                <button id="steam-connect-button"></button>
               </div>
             </div>
           </div>
@@ -922,10 +938,8 @@
     <script type="module" src="./src/translations.js"></script>
 
     <!-- Server Cache System -->
-    <script type="module" src="./src/server-cache.js"></script>
-
-    <!-- CS2 Server Status Integration -->
-    <script type="module" src="./src/cs2-server-status.js"></script>
+    <script type="module" src="./src/server-cache.js"></script>    <!-- CS2 Server Status Integration -->
+    <script type="module" src="./src/cs2-server-status-final.js"></script>
 
     <!-- Main Page Server Status Updates -->
     <script>
@@ -941,9 +955,9 @@
           console.log('🔧 MainPageServerStatus initializing...');
           
           // Reduced wait time for faster initialization
-          await new Promise(resolve => setTimeout(resolve, 300));
-            // Listen for server status updates from CS2ServerStatus
-          window.addEventListener('serverStatusUpdate', (event) => {
+          await new Promise(resolve => setTimeout(resolve, 300));          // Listen for server status updates from CS2ServerStatus
+          document.addEventListener('serverStatusUpdated', (event) => {
+            console.log('📊 Main page received serverStatusUpdated event:', event.detail);
             this.handleServerStatusUpdate(event.detail);
           });
 
@@ -1010,9 +1024,9 @@
           }
           
           console.log(`📊 Servers: ${this.onlineServers}/${this.serverCount} active (including VPN)`);
-        }
-
-        updateUI(serverData) {
+        }        updateUI(serverData) {
+          console.log('🎨 Main page updating UI with:', serverData);
+          
           const countDisplay = document.getElementById('server-count-display');
           const statusDot = document.getElementById('main-server-status-dot');
           const statusText = document.getElementById('main-server-status-text');
@@ -1024,25 +1038,34 @@
             return;
           }
 
-          // Update server count with animation
+          // Determine if server is active (online or VPN)
+          const isServerActive = serverData.status === 'online';
+          
+          // Update server count - show 1 if active, 0 if not
+          this.onlineServers = isServerActive ? 1 : 0;
           this.updateServerCount(countDisplay);
           
           // Update status dot
           this.updateStatusDot(statusDot, serverData.status);
-            // Update status text
-          if (statusText) {            const getTranslatedStatus = (status) => {
+            
+          // Update status text
+          if (statusText) {
+            const getTranslatedStatus = (status) => {
               if (window.TranslationSystem) {
-                const statusKey = status === 'unknown' ? 'checking' : status;
+                let statusKey = status;
+                if (status === 'unknown' || status === 'checking') {
+                  statusKey = 'checking';
+                }
                 return window.TranslationSystem.translate(`main.status.${statusKey}`);
               }
-              // Fallback texts
+              
               const statusTexts = {
                 'online': 'Online',
                 'offline': 'Offline', 
                 'unknown': 'Verificando...',
-                'vpn': 'Servidor VPN'
+                'checking': 'Verificando...'
               };
-              return statusTexts[status] || 'Desconhecido';
+              return statusTexts[status] || 'Verificando...';
             };
             
             statusText.textContent = getTranslatedStatus(serverData.status);
@@ -1055,35 +1078,29 @@
               hour: '2-digit', 
               minute: '2-digit' 
             });
-          }          // Show/hide details based on hover or status
-          if (serverDetails) {
-            if (serverData.status !== 'unknown') {
-              serverDetails.style.opacity = '0.7';
-            }
           }
-            // Show/hide VPN indicator - preserve VPN state once detected
+
+          // Show/hide details based on status
+          if (serverDetails && serverData.status !== 'unknown' && serverData.status !== 'checking') {
+            serverDetails.style.opacity = '0.7';
+          }
+          
+          // Handle VPN indicator if server IP is VPN
           const vpnIndicator = document.getElementById('main-vpn-indicator');
-          if (vpnIndicator) {
-            if (serverData.status === 'vpn') {
+          if (vpnIndicator && window.cs2ServerStatus) {
+            const serverIP = window.cs2ServerStatus.config.SERVER_IP;
+            const isVpnIP = window.cs2ServerStatus.isPrivateNetworkIP(serverIP);
+            
+            if (isVpnIP && isServerActive) {
               vpnIndicator.style.display = 'flex';
               vpnIndicator.style.opacity = '0.8';
-              // Mark as VPN detected to preserve state
-              vpnIndicator.setAttribute('data-vpn-detected', 'true');
-              console.log('🔌 VPN indicator activated on main page');
+              console.log('🔌 VPN indicator activated - server is VPN and online');
             } else {
-              // Only hide if VPN was never detected or if explicitly offline
-              const wasVpnDetected = vpnIndicator.getAttribute('data-vpn-detected') === 'true';
-              if (!wasVpnDetected || serverData.status === 'offline') {
-                vpnIndicator.style.display = 'none';
-                vpnIndicator.style.opacity = '0';
-                if (serverData.status === 'offline') {
-                  vpnIndicator.removeAttribute('data-vpn-detected');
-                }
-              }
-              // If VPN was detected before and status is unknown/checking, keep it visible
+              vpnIndicator.style.display = 'none';
+              vpnIndicator.style.opacity = '0';
             }
           }
-        }        updateServerCount(countDisplay) {
+        }updateServerCount(countDisplay) {
           // Show count of active servers (online + VPN)
           const displayCount = this.onlineServers;
           
@@ -1103,14 +1120,33 @@
               countDisplay.style.color = '#6b7280'; // gray
             }
           }, 100);
-        }updateStatusDot(statusDot, status) {
+        }        updateStatusDot(statusDot, status) {
+          console.log(`🔴 Updating status dot with status: ${status}`);
+          
           // Remove all status classes
-          statusDot.classList.remove('online', 'offline', 'unknown', 'vpn');
+          statusDot.classList.remove('online', 'offline', 'unknown', 'vpn', 'checking');
+          
+          // Map status to CSS classes
+          let dotClass;
+          switch (status) {
+            case 'online':
+              dotClass = 'online';
+              break;
+            case 'offline':
+              dotClass = 'offline';
+              break;
+            case 'checking':
+            case 'unknown':
+              dotClass = 'unknown';
+              break;
+            default:
+              dotClass = 'unknown';
+          }
           
           // Add appropriate class
-          statusDot.classList.add(status);
+          statusDot.classList.add(dotClass);
           
-          console.log(`🔴 Status dot updated to: ${status}`);
+          console.log(`🔴 Status dot updated to: ${dotClass} (from status: ${status})`);
         }
 
         updateLastUpdateText() {

@@ -1,8 +1,7 @@
-// Sistema de Tradução Dinâmica - OpServer
 class TranslationSystem {
   constructor() {
     this.currentLang = this.detectLanguage();
-    this.translations = {      pt: {
+    this.translations = {pt: {
         // Page Title
         'page.title': 'Bem-vindo',
         'page.servers.title': 'Servidores',
@@ -64,11 +63,15 @@ class TranslationSystem {
         'servers.server.connect': 'Conectar via Steam',
         'servers.server.ip': 'IP do Servidor:',        'servers.server.copy': 'Copiar IP',
         'servers.server.toggle': 'Mostrar/Ocultar IP',
-        'servers.map.current': 'MAPA ATUAL',
-        'servers.map.loading': 'Carregando informações...',        'servers.status.online': 'ONLINE',
+        'servers.map.current': 'MAPA ATUAL',        'servers.map.loading': 'Carregando informações...',        
+        'servers.status.online': 'ONLINE',
         'servers.status.offline': 'OFFLINE', 
         'servers.status.unknown': 'DESCONHECIDO',
-        'servers.status.vpn': 'SERVIDOR VPN','servers.features.title': 'DESTAQUES',
+        'servers.status.checking': 'VERIFICANDO...',
+        'servers.status.inconclusivel': 'INCONCLUSÍVEL',
+        'servers.status.vpn': 'SERVIDOR VPN',
+        
+        'servers.features.title': 'DESTAQUES',
         'servers.feature1': '24/7 (em breve)',
         'servers.feature2': '128-tickrate',
         'servers.feature3': 'Plugins de anti-cheat',
@@ -161,11 +164,15 @@ class TranslationSystem {
         'servers.server.connect': 'Connect via Steam',
         'servers.server.ip': 'Server IP:',        'servers.server.copy': 'Copy IP',
         'servers.server.toggle': 'Show/Hide IP',
-        'servers.map.current': 'CURRENT MAP',
-        'servers.map.loading': 'Loading information...',        'servers.status.online': 'ONLINE',
+        'servers.map.current': 'CURRENT MAP',        'servers.map.loading': 'Loading information...',        
+        'servers.status.online': 'ONLINE',
         'servers.status.offline': 'OFFLINE',
         'servers.status.unknown': 'UNKNOWN',
-        'servers.status.vpn': 'VPN SERVER','servers.features.title': 'HIGHLIGHTS',
+        'servers.status.checking': 'CHECKING...',
+        'servers.status.inconclusivel': 'INCONCLUSIVE',
+        'servers.status.vpn': 'VPN SERVER',
+        
+        'servers.features.title': 'HIGHLIGHTS',
         'servers.feature1': '24/7 (coming soon)',
         'servers.feature2': '128-tickrate',
         'servers.feature3': 'Anti-cheat plugins',

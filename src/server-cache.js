@@ -1,16 +1,14 @@
 /**
  * Server-side Cache System for CS2 Server Status
- * Handles caching of server status data to improve performance
- * and reduce API calls
  */
 
 class ServerCache {
   constructor(options = {}) {
-    this.cacheDuration = options.cacheDuration || 30000; // 30 seconds default
-    this.maxCacheSize = options.maxCacheSize || 100; // Maximum cache entries
+    this.cacheDuration = options.cacheDuration || 30000;
+    this.maxCacheSize = options.maxCacheSize || 100;
     this.cache = new Map();
     this.cacheTimestamps = new Map();
-    this.isEnabled = options.enabled !== false; // Cache enabled by default
+    this.isEnabled = options.enabled !== false;
     
     console.log('🗄️ ServerCache initialized with', {
       cacheDuration: this.cacheDuration,
@@ -18,13 +16,9 @@ class ServerCache {
       enabled: this.isEnabled
     });
 
-    // Cleanup expired entries periodically
     this.startCleanupInterval();
   }
 
-  /**
-   * Generate cache key from server configuration
-   */
   generateCacheKey(serverConfig) {
     if (!serverConfig || !serverConfig.ip || !serverConfig.port) {
       return null;

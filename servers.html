@@ -357,8 +357,8 @@
                                     <div class="font-display text-2xl font-semibold" data-translate="servers.server.title">
                                         A GREAT CHAOS 01
                                     </div>                                    <div class="flex items-center space-x-2">
-                                        <div id="server-status-dot" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                                        <span id="server-status-text" class="text-sm font-medium text-green-400">ONLINE</span>
+                                        <div id="server-status-dot" class="w-3 h-3 bg-gray-500 rounded-full animate-pulse"></div>
+                                        <span id="server-status-text" class="text-sm font-medium text-gray-400">VERIFICANDO...</span>
                                     </div>
                                 </div>
 
@@ -718,34 +718,22 @@
     <script type="module" src="./src/scroll-effects.js"></script>
 
     <!-- Server Cache System -->
-    <script type="module" src="./src/server-cache.js"></script>
+    <script type="module" src="./src/server-cache.js"></script>    <!-- CS2 Server Status Integration -->
+    <script type="module" src="./src/cs2-server-status-final.js"></script>
 
-    <!-- CS2 Server Status Integration -->
-    <script type="module" src="./src/cs2-server-status.js"></script>
-
-    <!-- Initialize Steam connect button -->
+    <!-- VPN Detection Script -->
     <script type="module">
+        // This script is now handled by the CS2ServerStatus class
+        document.addEventListener('serverStatusUpdated', function(event) {
+            // VPN detection is handled inside the CS2ServerStatus class
+            console.log('Server status updated:', event.detail.status);
+        });
+    </script>    <!-- Initialize Steam connect button -->
+    <script type="module">
+        // CS2ServerStatus now handles the Steam connect button initialization
+        // This script is kept for backward compatibility
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Steam connect button with dynamic server address
-            const steamConnectButton = document.getElementById('steam-connect-button');
-            if (steamConnectButton) {
-                // Default values (will be updated by CS2ServerStatus)
-                let serverIP = '177.54.147.46';
-                let serverPort = '27044';
-                
-                // Try to get values from environment variables if available
-                if (typeof process !== 'undefined' && process.env) {
-                    serverIP = process.env.SERVER_IP || serverIP;
-                    serverPort = process.env.SERVER_PORT || serverPort;
-                }
-                
-                const fullAddress = `${serverIP}:${serverPort}`;
-                steamConnectButton.addEventListener('click', function() {
-                    window.open(`steam://connect/${fullAddress}`, '_blank');
-                });
-                
-                console.log('🎮 Steam connect button initialized with address:', fullAddress);
-            }
+            console.log('🎮 Steam connect button now handled by CS2ServerStatus');
         });
     </script>
 </body>
