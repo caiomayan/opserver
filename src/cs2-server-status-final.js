@@ -51,18 +51,6 @@ let ConfigUtils = {
 
 let getConfig = () => DEFAULT_CONFIG;
 
-async function loadConfiguration() {
-  try {
-    const configModule = await import('./server-config.js');
-    ({ SERVER_CONFIG, MAP_NAMES, GAME_MODES, ConfigUtils, getConfig } = configModule);
-    console.log('✅ Configuration module loaded successfully');
-    return true;
-  } catch (error) {
-    console.warn('⚠️ Could not load server-config.js, using defaults:', error.message);
-    return false;
-  }
-}
-
 class CS2ServerStatus {
   constructor(config = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -152,16 +140,13 @@ class CS2ServerStatus {
     
     // Try to load from localStorage on init
     this.cache.loadFromStorage();
-  }
-  async init() {
+  }  async init() {
     console.log('🚀 Initializing CS2 server status with config:', this.config);
     
     try {
-      this.configLoaded = await loadConfiguration();
-      if (this.configLoaded) {
-        this.config = { ...this.config, ...getConfig() };
-        console.log('📋 Configuration loaded, server IP:', this.config.SERVER_IP);
-      }
+      this.configLoaded = true;
+      this.config = { ...this.config, ...getConfig() };
+      console.log('📋 Configuration loaded, server IP:', this.config.SERVER_IP);
       
       if (this.config.DEBUG_MODE) {
         const apiKey = this.config.STEAM_API_KEY;
