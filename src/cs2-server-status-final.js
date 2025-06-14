@@ -3,7 +3,7 @@
  * CS2 Server Status Integration with Cache Support
  */
 const DEFAULT_CONFIG = {
-  STEAM_API_KEY: import.meta.env.VITE_STEAM_API_KEY || '',
+  STEAM_API_KEY: import.meta.env.VITE_STEAM_API_KEY,
   SERVER_IP: '177.54.144.181', // IP fixo do seu servidor
   SERVER_PORT: '27041', // Porta fixa do seu servidor
   SERVER_NAME: '?', // Nome fictício fixo
@@ -849,7 +849,6 @@ class CS2ServerStatus {
     // Also update all dynamic fields that contain server data
     this.updateDynamicFields(data);
   }
-
   /**
    * Get map image path based on map name
    */
@@ -860,11 +859,12 @@ class CS2ServerStatus {
     // Check if we have this map image
     const knownMaps = ['dust2', 'mirage', 'inferno', 'nuke', 'train', 'vertigo', 'overpass', 'cache'];
     if (knownMaps.includes(normalizedName)) {
-      return `./public/img/maps/${normalizedName}.svg`;
+      // Use relative path that works both locally and on GitHub Pages
+      return `./img/maps/${normalizedName}.svg`;
     }
     
     // Default unknown map image
-    return './public/img/maps/unknown.svg';
+    return './img/maps/unknown.svg';
   }
   /**
    * Get friendly map name
