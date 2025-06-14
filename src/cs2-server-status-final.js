@@ -4,8 +4,8 @@
  */
 const DEFAULT_CONFIG = {
   STEAM_API_KEY: import.meta.env.VITE_STEAM_API_KEY,
-  SERVER_IP: '177.54.144.181', // IP fixo do seu servidor
-  SERVER_PORT: '27041', // Porta fixa do seu servidor
+  SERVER_IP: '26.115.124.39', // IP fixo do seu servidor
+  SERVER_PORT: '27015', // Porta fixa do seu servidor
   SERVER_NAME: '?', // Nome fictício fixo
   SERVER_REGION: '', // Será detectado automaticamente pela geolocalização do IP
   UPDATE_INTERVAL: 30000,
