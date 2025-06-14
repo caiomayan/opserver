@@ -5,9 +5,9 @@
 const DEFAULT_CONFIG = {
   STEAM_API_KEY: import.meta.env.VITE_STEAM_API_KEY || '',
   SERVER_IP: '177.54.144.181', // IP fixo do seu servidor
-  SERVER_PORT: '27084', // Porta fixa do seu servidor
-  SERVER_NAME: 'A GREAT CHAOS 01', // Nome fictício fixo
-  SERVER_REGION: 'Brasil', // Será atualizado dinamicamente pela geolocalização do IP
+  SERVER_PORT: '27041', // Porta fixa do seu servidor
+  SERVER_NAME: '?', // Nome fictício fixo
+  SERVER_REGION: '', // Será detectado automaticamente pela geolocalização do IP
   UPDATE_INTERVAL: 30000,
   FAST_INITIAL_INTERVAL: 1500,
   INITIAL_FAST_DURATION: 8000,
@@ -66,7 +66,7 @@ class CS2ServerStatus {
     this.lastUpdate = null;
     this.startTime = Date.now();
     this.serverData = {
-      name: 'A GREAT CHAOS 01',
+      name: '?',
       map: '?',
       players: { current: 0, max: 32 },
       status: 'checking',
@@ -170,11 +170,17 @@ class CS2ServerStatus {
       if (cachedData && this.cache.isValid()) {
         console.log('📦 Using cached data initially');
         this.serverData = { ...cachedData, fromCache: true };
-        this.updateUI(this.serverData);
+        this.updateUI(this.serverData);      }
+        this.startAutoUpdate();
+      
+      // Wait for region detection with error handling
+      try {
+        await this.updateServerRegion();
+        console.log('✅ Server region detection completed');
+      } catch (error) {
+        console.error('❌ Error during server region detection:', error);
       }
       
-      this.startAutoUpdate();
-      this.updateServerRegion();
       this.updateConnectionDetails();
       this.updateServerTitle();
       
@@ -250,12 +256,17 @@ class CS2ServerStatus {
       
       // Process API response
       const serverData = this.processApiResponse(data);
-      
-      // Update cache with new data
+        // Update cache with new data including region info
       this.cache.set(serverData);
       
       // Update UI with new data
       this.updateUI(serverData);
+      
+      // If we got new Steam region data, update the region display immediately
+      if (serverData.steamRegion && serverData.steamRegion.detectedCountryCode) {
+        console.log('🎯 New Steam region detected, updating display immediately');
+        this.updateRegionFlag(serverData.steamRegion.detectedCountryCode);
+      }
       
       // Update last update time
       this.lastUpdate = new Date();
@@ -288,13 +299,15 @@ class CS2ServerStatus {
       return this.serverData;
     }
   }
-
   /**
    * Get offline server data object
    */
   getOfflineServerData() {
+    // Use dynamic name if we have it from previous API calls, otherwise fallback
+    const dynamicName = this.serverData?.name || this.config.SERVER_NAME || '?';
+    
     return {
-      name: 'A GREAT CHAOS 01',
+      name: dynamicName,
       map: 'Unknown',
       players: { current: 0, max: 32 },
       status: 'offline',
@@ -310,8 +323,11 @@ class CS2ServerStatus {
    * Get VPN server data for detected VPN networks
    */
   getVpnServerData() {
+    // Use dynamic name if we have it from previous API calls, otherwise fallback
+    const dynamicName = this.serverData?.name || this.config.SERVER_NAME || '?';
+    
     return {
-      name: 'A GREAT CHAOS 01',
+      name: dynamicName,
       map: '?',
       players: { current: 0, max: 32 },
       status: 'vpn',
@@ -323,7 +339,6 @@ class CS2ServerStatus {
       fromCache: false
     };
   }
-
   /**
    * Process Steam API response
    */
@@ -344,8 +359,12 @@ class CS2ServerStatus {
       const serverInfo = apiData.response.servers[0];
       console.log('📊 Dados do servidor encontrado:', JSON.stringify(serverInfo, null, 2));
       
+      // Extrair informações de região da API Steam se disponível
+      const regionInfo = this.extractSteamRegionInfo(serverInfo);
+      console.log('🌍 Informações de região extraídas da Steam API:', regionInfo);
+      
       return {
-        name: serverInfo.name || 'A GREAT CHAOS 01',
+        name: serverInfo.name || '?',
         map: serverInfo.map || 'Unknown',
         players: { 
           current: serverInfo.players || 0, 
@@ -356,12 +375,227 @@ class CS2ServerStatus {
         gameMode: this.mapGameMode(serverInfo.gametype) || 'Retake',
         secure: serverInfo.secure === true || serverInfo.secure === 1,
         lastUpdate: new Date().toISOString(),
-        fromCache: false
+        fromCache: false,
+        // Adicionar informações de região da Steam API
+        steamRegion: regionInfo
       };
     } catch (error) {
       console.error('❌ Erro ao processar resposta da API:', error);
       return this.getOfflineServerData();
     }
+  }
+  /**
+   * Extract region information from Steam API response
+   */
+  extractSteamRegionInfo(serverInfo) {
+    console.log('🔍 Extracting region info from Steam API response...');
+    console.log('📋 Raw server info for region extraction:', JSON.stringify(serverInfo, null, 2));
+    
+    if (!serverInfo) {
+      console.warn('⚠️ No server info provided for region extraction');
+      return null;
+    }
+    
+    // Check various possible fields that might contain region information
+    const regionFields = [
+      'region', 'country', 'location', 'geo', 'datacenter', 
+      'server_region', 'game_server_region', 'addr', 'gameaddr',
+      'steamid', 'version', 'product', 'appid', 'gamedir',
+      // Additional fields that might contain location hints
+      'name', 'hostname', 'server_name'
+    ];
+    
+    let regionData = {};
+    
+    for (const field of regionFields) {
+      if (serverInfo[field] !== undefined) {
+        regionData[field] = serverInfo[field];
+        console.log(`🎯 Found field "${field}": ${JSON.stringify(serverInfo[field])}`);
+      }
+    }
+    
+    // Log all available fields for debugging
+    console.log('🔍 All available server fields:', Object.keys(serverInfo));
+    
+    // Try to map Steam region codes to country codes
+    const countryCode = this.mapSteamRegionToCountry(regionData);
+    
+    // If no region found in standard fields, try to extract from server name or IP
+    let additionalInfo = {};
+    if (!countryCode && serverInfo.name) {
+      additionalInfo.nameBasedRegion = this.extractRegionFromServerName(serverInfo.name);
+      console.log('🏷️ Attempting region extraction from server name:', additionalInfo.nameBasedRegion);
+    }
+    
+    return {
+      ...regionData,
+      ...additionalInfo,
+      detectedCountryCode: countryCode || additionalInfo.nameBasedRegion,
+      source: 'steam_api',
+      extractionTimestamp: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Extract region hints from server name
+   */
+  extractRegionFromServerName(serverName) {
+    console.log('🏷️ Extracting region from server name:', serverName);
+    
+    if (!serverName || typeof serverName !== 'string') {
+      return null;
+    }
+    
+    const name = serverName.toLowerCase();
+    
+    // Common region indicators in server names
+    const regionIndicators = {
+      // Brazil
+      'br': 'br', 'brazil': 'br', 'brasil': 'br', 'sao paulo': 'br', 'sp': 'br',
+      'rio': 'br', 'rj': 'br', 'belo horizonte': 'br', 'bh': 'br',
+      // US
+      'us': 'us', 'usa': 'us', 'america': 'us', 'ny': 'us', 'la': 'us',
+      'chicago': 'us', 'dallas': 'us', 'atlanta': 'us',
+      // Europe
+      'eu': 'de', 'europe': 'de', 'germany': 'de', 'berlin': 'de',
+      'france': 'fr', 'paris': 'fr', 'uk': 'gb', 'london': 'gb'
+    };
+    
+    for (const [indicator, code] of Object.entries(regionIndicators)) {
+      if (name.includes(indicator)) {
+        console.log(`✅ Region indicator found in name: ${indicator} -> ${code.toUpperCase()}`);
+        return code;
+      }
+    }
+    
+    return null;
+  }
+  /**
+   * Map Steam region information to ISO country codes
+   */
+  mapSteamRegionToCountry(regionData) {
+    console.log('🗺️ Mapping Steam region data to country code:', regionData);
+    
+    // Steam region code mappings (comprehensive list)
+    const steamRegionMap = {
+      // Steam datacenter regions
+      'useastcoast': 'us',
+      'uswestcoast': 'us',
+      'useast': 'us',
+      'uswest': 'us',
+      'ussouth': 'us',
+      'usnorth': 'us',
+      'us': 'us',
+      'northamerica': 'us',
+      'na': 'us',
+      
+      // Europe regions
+      'europe': 'de',
+      'eu': 'de',
+      'eurwest': 'de',
+      'eureast': 'de',
+      'euwest': 'de',
+      'eueast': 'de',
+      'eunorth': 'se',
+      'eusouth': 'it',
+      
+      // Asia-Pacific
+      'asia': 'jp',
+      'asiapacific': 'jp',
+      'apac': 'jp',
+      'japan': 'jp',
+      'jp': 'jp',
+      'korea': 'kr',
+      'kr': 'kr',
+      'china': 'cn',
+      'cn': 'cn',
+      'singapore': 'sg',
+      'sg': 'sg',
+      'hongkong': 'hk',
+      'hk': 'hk',
+      'india': 'in',
+      'in': 'in',
+      
+      // Oceania
+      'australia': 'au',
+      'au': 'au',
+      'oceania': 'au',
+      'newzealand': 'nz',
+      'nz': 'nz',
+      
+      // South America (Critical for Brazilian servers)
+      'southamerica': 'br',
+      'sa': 'br',
+      'southam': 'br',
+      'latam': 'br',
+      'latinamerica': 'br',
+      'brazil': 'br',
+      'brasil': 'br',
+      'br': 'br',
+      'argentina': 'ar',
+      'ar': 'ar',
+      'chile': 'cl',
+      'cl': 'cl',
+      'peru': 'pe',
+      'pe': 'pe',
+      'colombia': 'co',
+      'co': 'co',
+      
+      // Africa & Middle East
+      'africa': 'za',
+      'middleeast': 'ae',
+      'me': 'ae',
+      
+      // Specific countries
+      'united states': 'us',
+      'usa': 'us',
+      'canada': 'ca',
+      'germany': 'de',
+      'deutschland': 'de',
+      'france': 'fr',
+      'uk': 'gb',
+      'united kingdom': 'gb',
+      'spain': 'es',
+      'italy': 'it',
+      'netherlands': 'nl',
+      'sweden': 'se',
+      'norway': 'no',
+      'russia': 'ru',
+      'poland': 'pl'
+    };
+    
+    // Check each region field for mappable values
+    for (const [field, value] of Object.entries(regionData)) {
+      if (typeof value === 'string') {
+        const normalizedValue = value.toLowerCase().trim().replace(/[_\-\s]+/g, '');
+        
+        // Direct mapping
+        if (steamRegionMap[normalizedValue]) {
+          console.log(`✅ Steam region mapped: ${value} -> ${steamRegionMap[normalizedValue].toUpperCase()}`);
+          return steamRegionMap[normalizedValue];
+        }
+        
+        // Partial matching for compound region names
+        for (const [regionKey, countryCode] of Object.entries(steamRegionMap)) {
+          if (normalizedValue.includes(regionKey) || regionKey.includes(normalizedValue)) {
+            console.log(`✅ Steam region partial match: ${value} -> ${countryCode.toUpperCase()}`);
+            return countryCode;
+          }
+        }
+        
+        // Special case: Check for Brazilian hosting providers
+        const brazilianIndicators = ['locaweb', 'uol', 'terra', 'ig', 'globo', 'sao paulo', 'rio de janeiro', 'sp', 'rj'];
+        for (const indicator of brazilianIndicators) {
+          if (normalizedValue.includes(indicator)) {
+            console.log(`✅ Brazilian hosting indicator found: ${value} -> BR`);
+            return 'br';
+          }
+        }
+      }
+    }
+    
+    console.log('⚠️ No Steam region mapping found');
+    return null;
   }
   
   /**
@@ -457,19 +691,54 @@ class CS2ServerStatus {
    */
   updateUI(data) {
     console.log('🎨 Updating UI with server data:', data);
-    
-    // Get UI elements
+      // Get UI elements
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
     const mapElement = document.getElementById('server-map');
     const playersElement = document.getElementById('server-players');
     const modeElement = document.getElementById('server-mode');
     const latencyElement = document.getElementById('server-latency');
-    
-    // Map image and name elements
+    const serverTitleElement = document.getElementById('server-title');// Map image and name elements
     const mapImageElement = document.getElementById('current-map-image');
     const mapNameElement = document.getElementById('current-map-name');
-      // Update status dot and text
+    const mapLoadingText = document.getElementById('map-loading-text');
+      // Debug: Log which elements were found
+    console.log('🔍 UI Elements found:', {
+      statusDot: !!statusDot,
+      statusText: !!statusText,
+      mapElement: !!mapElement,
+      playersElement: !!playersElement,
+      modeElement: !!modeElement,
+      latencyElement: !!latencyElement,
+      serverTitleElement: !!serverTitleElement,
+      mapImageElement: !!mapImageElement,
+      mapNameElement: !!mapNameElement,
+      mapLoadingText: !!mapLoadingText    });
+    
+    // Debug: Log current map data
+    console.log('🗺️ Map data being processed:', {
+      mapName: data.map,
+      status: data.status,
+      serverName: data.name,
+      hasMapLoadingText: !!mapLoadingText
+    });
+    
+    // 🏷️ Update server title with dynamic name from Steam API
+    if (serverTitleElement && data.name) {
+      const dynamicServerName = data.name;
+      console.log(`🏷️ Updating server title to: "${dynamicServerName}"`);
+      
+      // Remove data-translate attribute to prevent translation system from overriding
+      serverTitleElement.removeAttribute('data-translate');
+      serverTitleElement.textContent = dynamicServerName;
+    } else if (serverTitleElement) {
+      // Fallback to static name if no dynamic name available
+      const fallbackName = this.config.SERVER_NAME || '?';
+      console.log(`🏷️ Using fallback server name: "${fallbackName}"`);
+      serverTitleElement.textContent = fallbackName;
+    }
+      
+    // Update status dot and text
     if (statusDot && statusText) {
       if (data.status === 'online') {
         statusDot.className = 'status-dot online';
@@ -526,24 +795,52 @@ class CS2ServerStatus {
         mapImageElement.src = mapImagePath;
         mapImageElement.style.opacity = '1';
       }
-      
-      // Update map name if exists
+        // Update map name if exists
       if (mapNameElement) {
         const friendlyMapName = this.getFriendlyMapName(data.map);
         mapNameElement.textContent = friendlyMapName;
         mapNameElement.style.opacity = '1';
-      }
-    } else {
+      }      // Update map loading text - hide it when server is online and map is loaded
+      if (mapLoadingText) {
+        if (data.map && data.map !== '?' && data.map !== 'Unknown') {
+          // Remove data-translate attribute to prevent translation system from overriding
+          mapLoadingText.removeAttribute('data-translate');
+          mapLoadingText.style.display = 'none';
+          console.log('🔄 Map loading text hidden - map loaded:', data.map);
+        } else {
+          // Restore data-translate attribute and show loading text
+          mapLoadingText.setAttribute('data-translate', 'servers.map.loading');
+          mapLoadingText.style.display = 'block';
+          mapLoadingText.textContent = 'Carregando informações...'; // Set fallback text
+          console.log('🔄 Map loading text shown - map not loaded:', data.map);
+        }
+      } else {
+        console.warn('⚠️ mapLoadingText element not found!');
+      }} else {
       // Fade out details if offline or checking
       if (mapElement) mapElement.style.opacity = '0.3';
       if (playersElement) playersElement.style.opacity = '0.3';
       if (modeElement) modeElement.style.opacity = '0.3';
       if (latencyElement) latencyElement.style.opacity = '0.3';
       if (mapImageElement) mapImageElement.style.opacity = '0.3';
-      if (mapNameElement) mapNameElement.style.opacity = '0.3';    }
+      if (mapNameElement) mapNameElement.style.opacity = '0.3';      // Show loading text when server is not online
+      if (mapLoadingText) {
+        // Restore data-translate attribute and show loading text
+        mapLoadingText.setAttribute('data-translate', 'servers.map.loading');
+        mapLoadingText.style.display = 'block';
+        mapLoadingText.textContent = 'Carregando informações...'; // Set fallback text
+        console.log('🔄 Map loading text shown - server not online, status:', data.status);
+      } else {
+        console.warn('⚠️ mapLoadingText element not found in offline section!');
+      }
+    }
     
     // 🔌 Update VPN indicators based on status
     this.updateVpnIndicators(data);
+      // Update region flag if we have new Steam region data
+    if (data.steamRegion && data.steamRegion.detectedCountryCode) {
+      this.updateRegionFlag(data.steamRegion.detectedCountryCode);
+    }
     
     // Dispatch event to notify other components of update
     const event = new CustomEvent('serverStatusUpdated', { detail: data });
@@ -569,16 +866,33 @@ class CS2ServerStatus {
     // Default unknown map image
     return './public/img/maps/unknown.svg';
   }
-
   /**
    * Get friendly map name
    */
   getFriendlyMapName(mapName) {
-    // Remove prefix (e.g., de_)
-    const baseName = mapName.replace(/^[a-z]{2}_/, '');
+    if (!mapName || mapName === '?' || mapName === 'Unknown') {
+      return '?';
+    }
     
-    // Capitalize first letter and rest lowercase
-    return baseName.charAt(0).toUpperCase() + baseName.slice(1).toLowerCase();
+    // Remove prefix (e.g., de_)
+    const baseName = mapName.replace(/^[a-z]{2}_/, '').toLowerCase();
+    
+    // Map of known maps to their friendly names
+    const friendlyMapNames = {
+      'dust2': 'Dust II',
+      'mirage': 'Mirage',
+      'inferno': 'Inferno',
+      'nuke': 'Nuke',
+      'train': 'Train',
+      'vertigo': 'Vertigo',
+      'overpass': 'Overpass',
+      'cache': 'Cache',
+      'ancient': 'Ancient',
+      'anubis': 'Anubis'
+    };
+    
+    // Return friendly name if known, otherwise capitalize first letter
+    return friendlyMapNames[baseName] || baseName.charAt(0).toUpperCase() + baseName.slice(1);
   }
 
   /**
@@ -615,17 +929,250 @@ class CS2ServerStatus {
           break;
       }
     });
+  }  /**
+   * Update server region display with country flag only
+   */
+  async updateServerRegion() {
+    console.log('🔍 Starting server region update with Steam API priority...');
+    
+    // Find elements with more robust selectors
+    const regionTextElement = document.getElementById('server-region');
+    
+    if (!regionTextElement) {
+      console.warn('⚠️ server-region element not found');
+      return;
+    }
+    
+    const regionContainer = regionTextElement.parentElement;
+    const flagElement = regionContainer.querySelector('.fi');
+    
+    if (!flagElement) {
+      console.warn('⚠️ Flag element (.fi) not found');
+      return;
+    }
+    
+    console.log('✅ Found region elements, proceeding with country detection...');
+    
+    try {
+      let countryCode = null;
+      
+      // PRIORITY 1: Check if we have Steam API region information from server data
+      if (this.serverData && this.serverData.steamRegion && this.serverData.steamRegion.detectedCountryCode) {
+        countryCode = this.serverData.steamRegion.detectedCountryCode;
+        console.log(`🎯 Using Steam API region: ${countryCode.toUpperCase()}`);
+      } 
+      
+      // PRIORITY 2: If no Steam region data, try to get it directly from current server status
+      if (!countryCode) {
+        console.log('🔄 No cached Steam region data, attempting direct Steam API region lookup...');
+        countryCode = await this.getSteamRegionFromCurrentData();
+      }
+      
+      // PRIORITY 3: Fallback to IP-based geolocation
+      if (!countryCode) {
+        console.log('🔄 Steam API region lookup failed, falling back to IP geolocation...');
+        countryCode = await this.getCountryFromIP(this.config.SERVER_IP);
+      }
+      
+      if (countryCode) {
+        // Update flag to the detected country
+        const newFlagClass = `fi fi-${countryCode.toLowerCase()}`;
+        flagElement.className = newFlagClass;
+        
+        // Hide the text, show only the flag
+        regionTextElement.style.display = 'none';
+        
+        console.log(`🏁 Server region flag updated to: ${countryCode.toUpperCase()} (class: ${newFlagClass})`);
+      } else {
+        // Fallback to Brazil if all detection methods fail
+        flagElement.className = 'fi fi-br';
+        regionTextElement.style.display = 'none';
+        console.log('🏁 Using fallback flag: Brazil');
+      }
+    } catch (error) {
+      console.error('❌ Error updating server region:', error);
+      // Fallback to Brazil flag
+      if (flagElement) {
+        flagElement.className = 'fi fi-br';
+        regionTextElement.style.display = 'none';
+        console.log('🏁 Applied fallback flag due to error');
+      }
+    }
   }
 
   /**
-   * Update server region display
+   * Attempt to get region information directly from current Steam API data
    */
-  updateServerRegion() {
-    const regionElement = document.getElementById('server-region');
-    if (regionElement) {
-      const serverRegion = import.meta.env.VITE_SERVER_REGION || 'João Pessoa, PB';
-      regionElement.textContent = serverRegion;
+  async getSteamRegionFromCurrentData() {
+    console.log('🎮 Attempting to get Steam region from current API data...');
+    
+    try {
+      // If we have recent server data with Steam region info, use it
+      if (this.serverData && this.serverData.steamRegion) {
+        const regionInfo = this.serverData.steamRegion;
+        if (regionInfo.detectedCountryCode) {
+          console.log(`✅ Found Steam region in current data: ${regionInfo.detectedCountryCode.toUpperCase()}`);
+          return regionInfo.detectedCountryCode;
+        }
+      }
+      
+      // If we don't have region data yet, try a quick Steam API call specifically for region info
+      const steamApiUrl = ConfigUtils.getSteamApiUrl();
+      const corsProxy = this.config.CORS_PROXY;
+      const proxyUrl = corsProxy + encodeURIComponent(steamApiUrl);
+      
+      console.log('🌐 Making Steam API call for region data...');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Quick 3-second timeout
+      
+      const response = await fetch(proxyUrl, { 
+        signal: controller.signal 
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const processedData = this.processApiResponse(data);
+      
+      if (processedData.steamRegion && processedData.steamRegion.detectedCountryCode) {
+        console.log(`✅ Steam API region detection successful: ${processedData.steamRegion.detectedCountryCode.toUpperCase()}`);
+        return processedData.steamRegion.detectedCountryCode;
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Steam region lookup failed:', error.message);
     }
+    
+    return null;
+  }/**
+   * Get country code from IP address using geolocation API
+   */
+  async getCountryFromIP(ip) {
+    console.log(`🌍 Detecting country for IP: ${ip}`);
+    
+    // First try the fallback method (which is very reliable for common ranges)
+    const fallbackResult = this.getCountryFallback(ip);
+    if (fallbackResult !== 'br' || (ip.startsWith('177.') || ip.startsWith('200.') || ip.startsWith('201.'))) {
+      console.log(`🎯 Quick detection successful via IP range: ${fallbackResult.toUpperCase()}`);
+      return fallbackResult;
+    }
+    
+    // Only use API if fallback is uncertain
+    const apis = [
+      {
+        name: 'ipapi.co via CORS proxy',
+        url: `${this.config.CORS_PROXY}${encodeURIComponent(`https://ipapi.co/${ip}/country/`)}`,
+        headers: { 'Accept': 'application/json' },
+        useCorsProxy: true
+      },
+      {
+        name: 'ip-api.com direct',
+        url: `http://ip-api.com/json/${ip}?fields=countryCode`,
+        headers: { 'Accept': 'application/json' },
+        useCorsProxy: false
+      }
+    ];
+    
+    for (const api of apis) {
+      try {
+        console.log(`📡 Trying ${api.name}: ${api.url}`);
+        
+        const response = await fetch(api.url, {
+          method: 'GET',
+          headers: api.headers,
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        let countryCode;
+        if (api.useCorsProxy) {
+          const data = await response.json();
+          countryCode = data.contents?.trim();
+        } else {
+          const data = await response.json();
+          countryCode = data.countryCode;
+        }
+        
+        console.log(`📋 Country code from ${api.name}: "${countryCode}"`);
+        
+        if (countryCode && countryCode.length === 2 && /^[A-Z]{2}$/i.test(countryCode.trim())) {
+          const cleanCode = countryCode.trim().toLowerCase();
+          console.log(`✅ API detection successful via ${api.name}: ${cleanCode.toUpperCase()}`);
+          return cleanCode;
+        }
+      } catch (error) {
+        console.warn(`⚠️ ${api.name} failed:`, error.message);
+        continue;
+      }
+    }
+    
+    console.log(`🔄 API detection failed, using fallback result: ${fallbackResult.toUpperCase()}`);
+    return fallbackResult;
+  }  /**
+   * Fallback country detection based on IP ranges
+   */
+  getCountryFallback(ip) {
+    console.log(`🔍 Using fallback detection for IP: ${ip}`);
+    
+    if (!ip || typeof ip !== 'string') {
+      console.log('❌ Invalid IP provided, defaulting to Brazil');
+      return 'br';
+    }
+
+    const octets = ip.split('.').map(num => parseInt(num, 10));
+    if (octets.length !== 4) {
+      console.log('❌ Invalid IP format, defaulting to Brazil');
+      return 'br';
+    }
+
+    const [o1, o2, o3] = octets;
+    console.log(`🔢 IP octets: ${o1}.${o2}.${o3}.x`);
+
+    // Specific check for the server IP (177.54.144.181)
+    if (o1 === 177 && o2 === 54 && o3 === 144) {
+      console.log('🇧🇷 Exact match for server IP - Brazil confirmed');
+      return 'br';
+    }
+
+    // Brazil IP ranges (more comprehensive)
+    if ((o1 >= 177 && o1 <= 191) || 
+        (o1 >= 200 && o1 <= 201) || 
+        (o1 >= 186 && o1 <= 190) ||
+        (o1 === 164 && o2 >= 41 && o2 <= 42)) {
+      console.log('🇧🇷 IP range matches Brazil');
+      return 'br';
+    }
+    
+    // US IP ranges (simplified but more accurate)
+    if ((o1 >= 3 && o1 <= 6) || 
+        (o1 >= 8 && o1 <= 15) || 
+        (o1 >= 16 && o1 <= 31) ||
+        (o1 >= 44 && o1 <= 47) ||
+        (o1 >= 54 && o1 <= 55) ||
+        (o1 >= 64 && o1 <= 79)) {
+      console.log('🇺🇸 IP range matches United States');
+      return 'us';
+    }
+
+    // Europe IP ranges (simplified) - default to Germany
+    if ((o1 >= 80 && o1 <= 95) || 
+        (o1 >= 193 && o1 <= 194) ||
+        (o1 >= 212 && o1 <= 213)) {
+      console.log('🇩🇪 IP range matches Germany/Europe');
+      return 'de';
+    }
+
+    // Default to Brazil (since this is a Brazilian server project)
+    console.log('🇧🇷 No specific range matched, defaulting to Brazil');
+    return 'br';
   }
 
   /**
@@ -654,7 +1201,7 @@ class CS2ServerStatus {
   updateServerTitle() {
     const titleElement = document.getElementById('server-title');
     if (titleElement) {
-      const serverName = import.meta.env.VITE_SERVER_NAME || 'A GREAT CHAOS 01';
+      const serverName = import.meta.env.VITE_SERVER_NAME || '?';
       titleElement.textContent = serverName;
     }
   }
@@ -691,6 +1238,26 @@ class CS2ServerStatus {
     if (data.status === 'vpn' || data.isVpnServer) {
       document.dispatchEvent(new CustomEvent('vpnServerDetected', { detail: data }));
       console.log('🎯 VPN server detected event dispatched');
+    }
+  }
+
+  /**
+   * Update region flag display with given country code
+   */
+  updateRegionFlag(countryCode) {
+    console.log(`🏁 Updating region flag to: ${countryCode.toUpperCase()}`);
+    
+    const regionTextElement = document.getElementById('server-region');
+    if (!regionTextElement) return;
+    
+    const regionContainer = regionTextElement.parentElement;
+    const flagElement = regionContainer.querySelector('.fi');
+    
+    if (flagElement && countryCode) {
+      const newFlagClass = `fi fi-${countryCode.toLowerCase()}`;
+      flagElement.className = newFlagClass;
+      regionTextElement.style.display = 'none'; // Keep text hidden
+      console.log(`✅ Flag updated to: ${newFlagClass}`);
     }
   }
 }

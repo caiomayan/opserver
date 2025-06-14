@@ -352,10 +352,9 @@
                     <div class="grid lg:grid-cols-3 gap-8">                        <!-- Server Info -->
                         <div class="lg:col-span-2 fade-in">
                             <div class="space-y-6">
-                                <!-- Header -->
-                                <div class="flex justify-between items-center slide-in-left">
-                                    <div class="font-display text-2xl font-semibold" data-translate="servers.server.title">
-                                        A GREAT CHAOS 01
+                                <!-- Header -->                                <div class="flex justify-between items-center slide-in-left">
+                                    <div id="server-title" class="font-display text-2xl font-semibold" data-translate="servers.server.title">
+                                        ?
                                     </div>                                    <div class="flex items-center space-x-2">
                                         <div id="server-status-dot" class="w-3 h-3 bg-gray-500 rounded-full animate-pulse"></div>
                                         <span id="server-status-text" class="text-sm font-medium text-gray-400">VERIFICANDO...</span>
@@ -385,9 +384,8 @@
                                         </div>
                                     </div>                                    <div class="space-y-4">                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60" data-translate="servers.server.region">Região</span>
-                                            <span class="flex items-center space-x-2">
+                                            <span class="flex items-center">
                                                 <span class="fi fi-br"></span>
-                                                <span id="server-region">Brasil</span>
                                             </span>
                                         </div><div class="flex justify-between text-sm border-b border-white/10 pb-2">
                                             <span class="text-white/60">Tickrate</span>
@@ -457,27 +455,15 @@
                                             onerror="this.src='./public/img/maps/unknown.svg'"
                                         />
                                     </div>
-                                    <!-- Map Name Overlay -->
-                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                                    <!-- Map Name Overlay -->                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                                         <div class="text-center">
                                             <h4 id="current-map-name" class="font-display text-lg font-semibold text-white">?</h4>
-                                            <p class="text-sm text-white/60" data-translate="servers.map.loading">Carregando informações...</p>
+                                            <p id="map-loading-text" class="text-sm text-white/60" data-translate="servers.map.loading">Carregando informações...</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Placeholder para servidores futuros -->
-                <div class="border border-white/10 bg-white/5 p-8 opacity-50">
-                    <div class="text-center space-y-4">
-                        <div class="font-display text-xl font-semibold text-white/60">
-                            A GREAT CHAOS 02
-                        </div>
-                        <div class="text-white/40">?</div>
-                        <div class="w-3 h-3 bg-gray-500 rounded-full mx-auto"></div>
                     </div>
                 </div>
 
@@ -744,13 +730,22 @@
                 }
             }
         }
-    </script><!-- Initialize Steam connect button -->
+    </script>    <!-- Initialize Steam connect button -->
     <script type="module">
         // CS2ServerStatus now handles the Steam connect button initialization
         // This script is kept for backward compatibility
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎮 Steam connect button now handled by CS2ServerStatus');
         });
-    </script>
+    </script>    <!-- Development diagnostic script -->
+    <script type="module" src="./test-servers-page.js"></script>
+    
+    <!-- Steam region detection test -->
+    <script type="module" src="./test-steam-region.js"></script>
+      <!-- Map loading debug test -->
+    <script type="module" src="./test-map-loading.js"></script>
+    
+    <!-- Final integration test -->
+    <script type="module" src="./test-final-integration.js"></script>
 </body>
 </html>

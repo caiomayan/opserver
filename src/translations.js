@@ -54,12 +54,12 @@ class TranslationSystem {
         
         // Servers Section (Nova página)
         'servers.title': 'NOSSOS SERVIDORES',
-        'servers.subtitle': 'Informações detalhadas sobre todos os nossos servidores',        'servers.server.title': 'A GREAT CHAOS 01',
+        'servers.subtitle': 'Informações detalhadas sobre todos os nossos servidores',        'servers.server.title': '?',
         'servers.server.map': 'Mapa',
         'servers.server.players': 'Jogadores',
         'servers.server.mode': 'Modo',
-        'servers.server.region': 'Região',
-        'servers.server.latency': 'Latência',
+        'servers.server.region': 'País',
+        'servers.server.latency': 'Ping',
         'servers.server.connect': 'Conectar via Steam',
         'servers.server.ip': 'IP do Servidor:',        'servers.server.copy': 'Copiar IP',
         'servers.server.toggle': 'Mostrar/Ocultar IP',
@@ -155,12 +155,12 @@ class TranslationSystem {
         
         // Servers Section (Nova página)
         'servers.title': 'OUR SERVERS',
-        'servers.subtitle': 'Detailed information about all our servers',        'servers.server.title': 'A GREAT CHAOS 01',
+        'servers.subtitle': 'Detailed information about all our servers',        'servers.server.title': '?',
         'servers.server.map': 'Map',
         'servers.server.players': 'Players',
         'servers.server.mode': 'Mode',
-        'servers.server.region': 'Region',
-        'servers.server.latency': 'Latency',
+        'servers.server.region': 'Country',
+        'servers.server.latency': 'Ping',
         'servers.server.connect': 'Connect via Steam',
         'servers.server.ip': 'Server IP:',        'servers.server.copy': 'Copy IP',
         'servers.server.toggle': 'Show/Hide IP',
