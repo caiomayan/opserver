@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
   ],
-  base: '/OpServer/',
+  base: '/opserver/',
   build: {
     rollupOptions: {
       input: {
