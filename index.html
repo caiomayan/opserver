@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>?</title>
+    <title>OPSERVER</title>
     <link
       rel="shortcut icon"
       href="./img/favicon.ico"
@@ -18,18 +18,45 @@
     />
   </head>
   <body
-    class="bg-white font-['Inter'] antialiased h-screen flex items-center justify-center overflow-hidden opacity-0 transition-opacity duration-300"
+    class="bg-white font-['Inter'] antialiased h-screen overflow-hidden opacity-0 transition-opacity duration-300 flex flex-col"
   >
-    <div class="relative">      <div class="block" onclick="redirectToMain()">
-        <img
-          src="./img/transparentlogo.png"
-          alt="OpServer Logo"
-          class="w-64 md:w-80 transition-all duration-700 ease-out hover:scale-110 opacity-90 hover:opacity-100 animate-fadeIn cursor-pointer click-transition"
-        />
+    <div class="flex-1 flex items-center justify-center">
+      <div class="relative">        <div class="block" onclick="redirectToMain()">
+          <img
+            src="./img/transparentlogo.png"
+            alt="OpServer Logo"
+            class="w-64 md:w-80 transition-all duration-700 ease-out hover:scale-110 opacity-90 hover:opacity-100 animate-fadeIn cursor-pointer click-transition"
+          />
+        </div>
       </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="py-3 px-6">
+      <div class="w-full">
+        <div class="flex justify-between items-center">
+          <!-- Texto centralizado -->
+          <div class="absolute left-1/2 transform -translate-x-1/2 text-[11px] text-black/50">
+            By using OPSERVER you agree to our practices
+          </div>
+          
+          <!-- OPSERVER no lado direito -->
+          <div class="ml-auto font-display text-sm font-medium tracking-tight text-black/80">
+            OPSERVER
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <style>
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .font-display {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-weight: 600;
+      }
+      
       @keyframes fadeIn {
         0% {
           opacity: 0;

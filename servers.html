@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servidores - OpServer</title>
+    <title>OPSERVER</title>
     <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="./src/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">    <style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">    <style>
         body {
-            font-family: "Inter", sans-serif;
-            line-height: 1.5;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            font-weight: 400;
         }
         .font-display {
-            font-family: "Space Grotesk", sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-weight: 600;
         }
         .fi {
             border-radius: 3px;
@@ -48,67 +50,232 @@
             opacity: 0;
         }        .hamburger-active .line3 {
             transform: rotate(-45deg) translate(7px, -6px);
-        }        /* Server Status Animation */
-        #server-map, #server-players, #server-mode, #server-latency, #current-map-image, #current-map-name {
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        /* Map Image Container Styles */
-        .map-container {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
+        }        
+        /* Enhanced Server Box Styles - Inspired by blackbox.ai */
+        .server-box {
+            background: rgba(15, 15, 15, 0.8);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(16px);
             overflow: hidden;
         }
-
-        .map-container:hover {
-            border-color: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
+        
+        .server-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .server-status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
             transition: all 0.3s ease;
-        }
-
-        .map-image {
-            filter: brightness(0.8) contrast(1.1);
-            transition: filter 0.3s ease;
-        }
-
-        .map-container:hover .map-image {
-            filter: brightness(0.9) contrast(1.2);
-        }
-
-        /* Update indicator for server status */
-        .server-updating {
             position: relative;
+            display: inline-block;
         }
-
-        .server-updating::after {
+        
+        .server-status-indicator::after {
             content: '';
             position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 6px;
-            height: 6px;
-            background: #3b82f6;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
             border-radius: 50%;
-            animation: pulse 1s infinite;
-        }        @keyframes pulse {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
+            z-index: -1;
+            opacity: 0.3;
+            transition: all 0.3s ease;
         }
-
-        /* VPN Server Status Styles */
-        #server-status-dot.vpn {
-            background: #f59e0b !important; /* amber-500 */
-            animation: pulse-vpn 2s infinite !important;
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4) !important;
+        
+        .server-status-indicator.online {
+            background-color: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
         }
-
-        #server-status-text.vpn {
-            color: #f59e0b !important; /* amber-500 */
+        
+        .server-status-indicator.online::after {
+            background-color: #22c55e;
+            animation: pulse-status 2s infinite;
         }
-
-        @keyframes pulse-vpn {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
+        
+        .server-status-indicator.offline {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        
+        .server-status-indicator.offline::after {
+            background-color: #ef4444;
+            opacity: 0.2;
+        }
+        
+        .server-status-indicator.unknown {
+            background-color: #6b7280;
+            box-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+        }
+        
+        .server-status-indicator.vpn {
+            background-color: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .server-status-indicator.vpn::after {
+            background-color: #f59e0b;
+            animation: pulse-status 2s infinite;
+        }
+        
+        .server-detail-group {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .server-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            transition: background 0.2s ease;
+        }
+        
+        .server-detail-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        .server-detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .server-detail-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+        
+        .server-detail-value {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+        
+        .connect-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            letter-spacing: 0.025em;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+        }
+        
+        .connect-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .connect-button:active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .server-map-container {
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .server-map-image {
+            filter: brightness(0.9) saturate(1.1) contrast(1.1);
+        }
+        
+        .server-map-overlay {
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem 1rem 1rem;
+        }
+        
+        .ip-input-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .ip-input-container:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .ip-input {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.025em;
+            width: 100%;
+            border: none;
+            padding: 0.75rem 4.5rem 0.75rem 1rem;
+        }
+        
+        .ip-input:focus {
+            outline: none;
+        }
+        
+        .ip-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .ip-button:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .ip-button-copy {
+            right: 3rem;
+        }
+        
+        .ip-button-toggle {
+            right: 0.75rem;
+        }
+        
+        .vpn-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            gap: 0.75rem;
+        }
+        
+        @keyframes pulse-status {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.3); }
         }/* Mobile menu base styles */
         #mobile-menu {
             transform: translateX(100%);
@@ -220,18 +387,13 @@
             }
         }
     </style>
-</head>
-<body class="bg-black text-white antialiased min-h-screen overflow-x-hidden selection:bg-white selection:text-black">    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 backdrop-blur-xl bg-black/95 border-b border-white/5">
-        <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4">
+</head>    <body class="bg-black text-white antialiased min-h-screen overflow-x-hidden selection:bg-white selection:text-black flex flex-col">    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 backdrop-blur-xl bg-black/95">
+        <div class="w-full px-6 py-4">
             <div class="relative flex items-center justify-between">
-                <!-- Language Selector - Hidden on mobile -->
+                <!-- No Language Selector -->
                 <div class="hidden sm:block">
-                    <div class="flex items-center space-x-1 text-xs text-white/50">
-                        <a href="#" data-lang="pt" class="hover:text-white/80 transition-colors">PT</a>
-                        <span>/</span>
-                        <a href="#" data-lang="en" class="hover:text-white/80 transition-colors">EN</a>
-                    </div>
+                    <div class="w-8"></div>
                 </div>                <!-- Logo centralizado -->                <div class="absolute left-1/2 transform -translate-x-1/2">
                     <a href="main.html">
                         <img src="./img/favicon.ico" alt="OpServer" class="w-8 h-8 filter brightness-0 invert">
@@ -241,10 +403,9 @@
                 <!-- Desktop Menu -->
                 <div class="hidden lg:block">
                     <ul class="flex space-x-8 text-sm font-medium">
-                        <li><a href="main.html#about" data-translate="nav.about" class="hover:text-white/70 transition-colors">SOBRE</a></li>
-                        <li><a href="servers.html" data-translate="nav.servers" class="hover:text-white/70 transition-colors text-white">SERVIDORES</a></li>
-                        <li><a href="main.html#inventory" data-translate="nav.inventory" class="hover:text-white/70 transition-colors">INVENTÁRIO</a></li>
-                        <li><a href="main.html#community" data-translate="nav.community" class="hover:text-white/70 transition-colors">COMUNIDADE</a></li>
+                        <li><a href="about.html" class="hover:text-white/70 transition-colors">SOBRE</a></li>
+                        <li><a href="servers.html" class="hover:text-white/70 transition-colors text-white">JOGAR</a></li>
+                        <li><a href="https://inventory.cstrike.app/" class="hover:text-white/70 transition-colors">INVENTÁRIO</a></li>
                     </ul>
                 </div>                <!-- Mobile Menu Button -->
                 <div class="lg:hidden" id="hamburger-container">
@@ -269,7 +430,7 @@
             class="lg:hidden fixed inset-0 z-[9999]"
             style="background: #000000 !important; background-color: rgb(0, 0, 0) !important;"
         >            <div class="flex flex-col h-full" style="background: rgb(0, 0, 0) !important;">
-                <!-- Mobile Menu Header -->                <div class="flex items-center justify-between p-4 border-b border-white/5" style="background: rgb(0, 0, 0) !important;">
+                <!-- Mobile Menu Header -->                <div class="flex items-center justify-between p-4" style="background: rgb(0, 0, 0) !important;">
                     <a href="main.html">
                         <img src="./img/favicon.ico" alt="OpServer" class="w-8 h-8 filter brightness-0 invert">
                     </a>
@@ -286,176 +447,186 @@
                 <div class="flex-1 flex flex-col justify-center px-8 py-16" style="background: rgb(0, 0, 0) !important;">
                     <nav class="space-y-12 text-center">
                         <a
-                            href="main.html#about"
+                            href="about.html"
                             class="block text-3xl font-medium text-white hover:text-white/70 transition-colors mobile-menu-link"
-                            data-translate="nav.about"
                         >SOBRE</a>
                         <a
                             href="servers.html"
                             class="block text-3xl font-medium text-white hover:text-white/70 transition-colors mobile-menu-link"
-                            data-translate="nav.servers"
-                        >SERVIDORES</a>
+                        >JOGAR</a>
                         <a
-                            href="main.html#inventory"
+                            href="https://inventory.cstrike.app/"
                             class="block text-3xl font-medium text-white hover:text-white/70 transition-colors mobile-menu-link"
-                            data-translate="nav.inventory"
                         >INVENTÁRIO</a>
-                        <a
-                            href="main.html#community"
-                            class="block text-3xl font-medium text-white hover:text-white/70 transition-colors mobile-menu-link"
-                            data-translate="nav.community"
-                        >COMUNIDADE</a>
                     </nav>
-                </div>                <!-- Mobile Language Selector -->
-                <div class="p-8 border-t border-white/5 bg-black" style="background: rgb(0, 0, 0) !important;">
-                    <div class="text-sm text-white mb-2 font-medium">Idioma / Language</div>
-                    <div class="flex items-center space-x-4">
-                        <a
-                            href="#"
-                            data-lang="pt"
-                            class="flex items-center space-x-2 text-white hover:text-white transition-colors bg-zinc-900 p-3 rounded-lg border border-white/10"
-                        >
-                            <span class="fi fi-br"></span>
-                            <span class="font-medium">Português</span>
-                        </a>
-                        <a
-                            href="#"
-                            data-lang="en"
-                            class="flex items-center space-x-2 text-white/80 hover:text-white transition-colors bg-zinc-900 p-3 rounded-lg border border-white/10"
-                        >
-                            <span class="fi fi-us"></span>
-                            <span class="font-medium">English</span>
-                        </a>
-                    </div>
+                </div>                <!-- Mobile Menu Footer - Empty to maintain structure -->
+                <div class="p-8 bg-black" style="background: rgb(0, 0, 0) !important;">
                 </div>
             </div>
         </div>
     </nav>    <!-- Hero Section -->
-    <section class="pt-32 pb-16 px-8 parallax fade-in" data-speed="0.15">
+    <section class="pt-28 pb-8 px-8">
         <div class="max-w-6xl mx-auto text-center">
-            <h1 class="font-display text-5xl md:text-6xl font-bold tracking-tight leading-none mb-6 slide-in-left" data-translate="servers.title">
-                NOSSOS SERVIDORES
+            <h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-none mb-4" data-typewriter="title">
+                SERVIDORES
             </h1>
-            <p class="text-lg text-white/70 max-w-3xl mx-auto slide-in-right" data-translate="servers.subtitle">
-                Informações detalhadas sobre todos os nossos servidores Counter-Strike 2
+            <p class="text-sm text-white/70 max-w-3xl mx-auto">
+                Informações sobre o nosso servidor de CS2
             </p>
         </div>
     </section>    <!-- Servers Grid -->
-    <section class="py-16 px-8 parallax" data-speed="0.08">
+    <section class="py-6 px-8 flex-1">
         <div class="max-w-7xl mx-auto">
             <div class="grid gap-8">
                 
-                <!-- Server 1 -->
-                <div class="border border-white/10 bg-white/5 p-8 hover:border-white/20 transition-colors enhanced-hover scale-in">
-                    <div class="grid lg:grid-cols-3 gap-8">                        <!-- Server Info -->
-                        <div class="lg:col-span-2 fade-in">
-                            <div class="space-y-6">
-                                <!-- Header -->                                <div class="flex justify-between items-center slide-in-left">
-                                    <div id="server-title" class="font-display text-2xl font-semibold" data-translate="servers.server.title">
+                <!-- Server 1 - Redesigned -->
+                <div class="server-box p-0">
+                    <div class="grid lg:grid-cols-3 gap-0">
+                        <!-- Server Info -->
+                        <div class="lg:col-span-2 p-6">
+                            <!-- Header -->
+                            <div class="server-header flex items-center justify-between pb-3 mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div id="server-title" class="font-display text-xl font-bold tracking-tight">
                                         ?
-                                    </div>                                    <div class="flex items-center space-x-2">
-                                        <div id="server-status-dot" class="w-3 h-3 bg-gray-500 rounded-full animate-pulse"></div>
-                                        <span id="server-status-text" class="text-sm font-medium text-gray-400">VERIFICANDO...</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="server-status-indicator" id="server-status-dot"></span>
+                                        <span id="server-status-text" class="text-sm font-medium text-white/80">Verificando...</span>
                                     </div>
                                 </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    <span class="flex items-center space-x-1 bg-black/20 py-1 px-3 rounded-full">
+                                        <span class="fi fi-br mr-1.5 shadow-sm"></span>
+                                        <span class="text-xs font-medium text-white/90">Brasil</span>
+                                    </span>
+                                    <span class="text-xs font-medium bg-black/20 py-1 px-3 rounded-full">128 tick</span>
+                                </div>
+                            </div>
 
-                                <!-- VPN Indicator (hidden by default) -->
-                                <div id="vpn-indicator" class="flex items-center space-x-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg" style="display: none;">
-                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                    <span class="text-amber-500 text-sm font-medium" data-translate="servers.status.vpn">SERVIDOR VPN</span>
-                                    <span class="text-amber-500/70 text-xs">• Status detectado automaticamente</span>
-                                </div><!-- Server Details Grid -->
-                                <div class="grid md:grid-cols-2 gap-8 slide-in-right">                                    <div class="space-y-4">
-                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60" data-translate="servers.server.map">Mapa</span>
-                                            <span id="server-map" class="font-mono" data-translate="general.unknown">?</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60" data-translate="servers.server.players">Jogadores</span>
-                                            <span id="server-players" class="font-mono" data-translate="general.unknown">?</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60" data-translate="servers.server.mode">Modo</span>
-                                            <span id="server-mode" class="font-mono" data-translate="general.unknown">?</span>
-                                        </div>
-                                    </div>                                    <div class="space-y-4">                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60" data-translate="servers.server.region">Região</span>
-                                            <span class="flex items-center">
-                                                <span class="fi fi-br"></span>
-                                            </span>
-                                        </div><div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60">Tickrate</span>
-                                            <span class="font-mono">128</span>
-                                        </div>                                        <div class="flex justify-between text-sm border-b border-white/10 pb-2">
-                                            <span class="text-white/60" data-translate="servers.server.latency">Latência</span>
-                                            <span id="server-latency" class="font-mono" data-translate="general.unknown">?</span>
-                                        </div>
+                            <!-- VPN Indicator (hidden by default) -->
+                            <div id="vpn-indicator" class="vpn-badge mb-4" style="display: none;">
+                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                <span class="text-amber-500 text-sm font-medium">SERVIDOR VPN</span>
+                                <span class="text-amber-500/70 text-xs">• Status detectado automaticamente</span>
+                            </div>
+                            
+                            <!-- Server Stats -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <!-- Left Column Stats -->
+                                <div class="server-detail-group">
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Mapa</span>
+                                        <span id="server-map" class="server-detail-value">?</span>
                                     </div>
-                                </div><!-- Connection Section -->                                <div class="space-y-4 pt-4 fade-in">
-                                    <button
-                                        id="steam-connect-button"
-                                        class="w-full bg-blue-600 hover:bg-white hover:text-black text-white py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center space-x-3 rounded-lg cursor-pointer"
-                                    >
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16c-.169-.184-.4-.277-.693-.277-.292 0-.523.093-.693.277-.169.184-.253.415-.253.693 0 .277.084.508.253.692.17.184.4.277.693.277.292 0 .523-.093.693-.277.169-.184.253-.415.253-.692 0-.278-.084-.509-.253-.693z"/>
-                                        </svg>
-                                        <span data-translate="servers.server.connect">Conectar via Steam</span>
-                                    </button>
-                                      <div class="space-y-2">
-                                        <span class="text-white/60 text-sm" data-translate="servers.server.ip">IP do Servidor:</span>
-                                        <div class="relative">                                            <input 
-                                                type="password" 
-                                                value="connect SERVER_IP:SERVER_PORT" 
-                                                readonly 
-                                                id="serverIP1"
-                                                class="w-full bg-black border border-white/20 px-4 py-3 pr-20 text-sm font-mono text-white/80 focus:outline-none rounded-lg"
-                                            />
-                                            <!-- Copy button -->
-                                            <button
-                                                onclick="copyServerIP('serverIP1')"
-                                                class="absolute right-12 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
-                                                data-translate-title="servers.server.copy"
-                                                title="Copiar IP"
-                                            >
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                                </svg>
-                                            </button>
-                                            <!-- Eye visibility button -->
-                                            <button 
-                                                onclick="toggleIPVisibility('serverIP1', 'eyeIcon1')" 
-                                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
-                                                data-translate-title="servers.server.toggle"
-                                                title="Mostrar/Ocultar IP"
-                                            >
-                                                <svg id="eyeIcon1" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Jogadores</span>
+                                        <span id="server-players" class="server-detail-value">?</span>
+                                    </div>
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Modo</span>
+                                        <span id="server-mode" class="server-detail-value">?</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right Column Stats -->
+                                <div class="server-detail-group">
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Status</span>
+                                        <span class="server-detail-value flex items-center">
+                                            <span id="server-status-indicator-inline" class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span>
+                                            <span id="server-status-text-inline">Verificando</span>
+                                        </span>
+                                    </div>
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Latência</span>
+                                        <span id="server-latency" class="server-detail-value">?</span>
+                                    </div>
+                                    <div class="server-detail-item py-2 px-3">
+                                        <span class="server-detail-label">Última atualização</span>
+                                        <span id="last-update" class="server-detail-value text-xs">Agora</span>
                                     </div>
                                 </div>
                             </div>
-                        </div>                        <!-- Current Map Image -->
-                        <div class="scale-in">
+                            
+                            <!-- Connection Section -->
                             <div class="space-y-4">
-                                <h3 class="font-display text-xl font-semibold text-center" data-translate="servers.map.current">MAPA ATUAL</h3>                                <div class="relative map-container rounded-xl overflow-hidden">
-                                    <!-- Map Image Container -->
-                                    <div class="aspect-video bg-black/20 flex items-center justify-center">                                        <img 
-                                            id="current-map-image" 
-                                            src="./img/maps/unknown.svg" 
-                                            alt="Mapa Atual" 
-                                            class="w-full h-full object-cover map-image transition-opacity duration-300"
-                                            onerror="this.src='./img/maps/unknown.svg'"
+                                <button
+                                    id="steam-connect-button"
+                                    class="connect-button w-full flex items-center justify-center space-x-3 py-2.5"
+                                >
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16c-.169-.184-.4-.277-.693-.277-.292 0-.523.093-.693.277-.169.184-.253.415-.253.693 0 .277.084.508.253.692.17.184.4.277.693.277.292 0 .523-.093.693-.277.169-.184.253-.415.253-.692 0-.278-.084-.509-.253-.693z"/>
+                                    </svg>
+                                    <span>CONECTAR VIA STEAM</span>
+                                </button>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-white/70 mb-2">IP do Servidor</label>
+                                    <div class="ip-input-container">
+                                        <input 
+                                            type="password" 
+                                            value="connect 26.141.71.75:27015" 
+                                            readonly 
+                                            id="serverIP1"
+                                            class="ip-input py-2.5"
                                         />
+                                        <!-- Copy button -->
+                                        <button
+                                            onclick="copyServerIP('serverIP1')"
+                                            class="ip-button ip-button-copy"
+                                            title="Copiar IP"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </button>
+                                        <!-- Eye visibility button -->
+                                        <button 
+                                            onclick="toggleIPVisibility('serverIP1', 'eyeIcon1')" 
+                                            class="ip-button ip-button-toggle"
+                                            title="Mostrar/Ocultar IP"
+                                        >
+                                            <svg id="eyeIcon1" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
                                     </div>
-                                    <!-- Map Name Overlay -->                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                                        <div class="text-center">
-                                            <h4 id="current-map-name" class="font-display text-lg font-semibold text-white">?</h4>
-                                            <p id="map-loading-text" class="text-sm text-white/60" data-translate="servers.map.loading">Carregando informações...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Map Image - Full height on right side -->
+                        <div class="h-full">
+                            <div class="server-map-container h-full">
+                                <img 
+                                    id="current-map-image" 
+                                    src="./img/maps/unknown.svg" 
+                                    alt="Mapa Atual" 
+                                    class="server-map-image w-full h-full object-cover"
+                                    onerror="this.src='./img/maps/unknown.svg'"
+                                />
+                                <!-- Map Info Overlay -->
+                                <div class="server-map-overlay">
+                                    <div class="text-center">
+                                        <h4 id="current-map-name" class="font-display text-lg font-bold text-white tracking-tight mb-1">?</h4>
+                                        <div class="flex items-center justify-center space-x-3 text-sm">
+                                            <span id="map-player-count" class="text-white/70 flex items-center">
+                                                <svg class="w-3 h-3 mr-1 text-white/50" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <span id="map-players-text">0/0</span>
+                                            </span>
+                                            <span class="text-white/70 flex items-center">
+                                                <svg class="w-3 h-3 mr-1 text-white/50" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <span id="map-round-time">00:00</span>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -469,58 +640,43 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-16 px-8 border-t border-white/5">
-        <div class="max-w-7xl mx-auto">
-            <!-- Mobile Layout -->
-            <div class="md:hidden flex flex-col items-center space-y-4 text-center">
-                <div class="text-xs text-white/40" data-translate="footer.copyright">© 2025 OpServer</div>
-                <div class="font-display text-lg font-medium tracking-tight">
-                    OPSERVER
-                </div>
-                <div class="flex flex-col items-center space-y-3 text-sm text-white/60">
-                    <a href="#" data-translate="footer.terms" class="hover:text-white transition-colors">Termos</a>
-                    <a href="#" data-translate="footer.privacy" class="hover:text-white transition-colors">Privacidade</a>
-                    <a href="#" data-translate="footer.support" class="hover:text-white transition-colors">Suporte</a>
-                </div>
-            </div>
-            
-            <!-- Desktop Layout -->
-            <div class="hidden md:flex md:justify-between md:items-center">
-                <div class="font-display text-lg font-medium tracking-tight">
-                    OPSERVER
-                </div>
-                
-                <!-- Absolutamente centralizado -->
-                <div class="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-8 text-sm text-white/60">
-                    <a href="#" data-translate="footer.terms" class="hover:text-white transition-colors">Termos</a>
-                    <a href="#" data-translate="footer.privacy" class="hover:text-white transition-colors">Privacidade</a>
-                    <a href="#" data-translate="footer.support" class="hover:text-white transition-colors">Suporte</a>
-                </div>
-                
-                <div class="text-xs text-white/40" data-translate="footer.copyright">© 2025 OpServer</div>
-            </div>
+    <footer class="py-3 px-6">
+      <div class="w-full">
+        <div class="flex justify-between items-center">
+          <!-- Texto centralizado -->
+          <div class="absolute left-1/2 transform -translate-x-1/2 text-[11px] text-white/50">
+            BETA
+          </div>
+          
+          <!-- OPSERVER no lado direito -->
+          <div class="ml-auto font-display text-sm font-medium tracking-tight text-white/80">
+            OPSERVER
+          </div>
         </div>
+      </div>
     </footer>    <!-- Scripts -->
-    <script type="module" src="./src/translations.js"></script>
     <script>
         function copyServerIP(inputId) {
             const input = document.getElementById(inputId);
             const serverCommand = input.value;
             
+            // Find the copy button for this input
+            const copyButton = input.parentElement.querySelector('.ip-button-copy');
+            
             // Tenta usar a API moderna de clipboard
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(serverCommand).then(() => {
-                    showCopyFeedback();
+                    showCopyFeedback(copyButton);
                 }).catch(err => {
                     console.error('Erro ao copiar:', err);
-                    fallbackCopyTextToClipboard(serverCommand);
+                    fallbackCopyTextToClipboard(serverCommand, copyButton);
                 });
             } else {
-                fallbackCopyTextToClipboard(serverCommand);
+                fallbackCopyTextToClipboard(serverCommand, copyButton);
             }
         }
 
-        function fallbackCopyTextToClipboard(text) {
+        function fallbackCopyTextToClipboard(text, buttonElement) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.top = "0";
@@ -533,7 +689,7 @@
             
             try {
                 document.execCommand('copy');
-                showCopyFeedback();
+                showCopyFeedback(buttonElement);
             } catch (err) {
                 console.error('Erro no fallback:', err);
             }
@@ -541,30 +697,33 @@
             document.body.removeChild(textArea);
         }
 
-        function showCopyFeedback() {
-            const tooltip = document.createElement('div');
-            tooltip.textContent = window.TranslationSystem ? 
-                window.TranslationSystem.translate('servers.server.copy') + '!' : 'IP copiado!';
-            tooltip.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                font-size: 14px;
-                z-index: 1000;
-                pointer-events: none;
-                backdrop-filter: blur(8px);
+        function showCopyFeedback(buttonElement) {
+            // Get the SVG icon inside the button
+            const icon = buttonElement.querySelector('svg');
+            if (!icon) return;
+            
+            // Store the original icon HTML
+            const originalIconHTML = icon.innerHTML;
+            
+            // Change to check icon
+            icon.innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             `;
             
-            document.body.appendChild(tooltip);
+            // Add success styling
+            buttonElement.style.background = 'rgba(34, 197, 94, 0.15)';
+            buttonElement.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+            buttonElement.style.color = 'rgba(34, 197, 94, 0.9)';
+            buttonElement.style.transition = 'all 0.2s ease';
             
+            // Restore original icon and styling after 2 seconds
             setTimeout(() => {
-                document.body.removeChild(tooltip);
-            }, 2000);
+                icon.innerHTML = originalIconHTML;
+                buttonElement.style.background = '';
+                buttonElement.style.borderColor = '';
+                buttonElement.style.color = '';
+                buttonElement.style.transition = '';
+            }, 750);
         }
 
         function toggleIPVisibility(inputId, iconId) {
@@ -666,78 +825,79 @@
                     closeMobileMenu();
                 }
             });
-
-            // Update language selector state in mobile menu
-            function updateMobileLanguageSelector() {
-                const currentLang = localStorage.getItem('preferredLanguage') || 'pt';
-                const ptLink = document.querySelector('#mobile-menu [data-lang="pt"]');
-                const enLink = document.querySelector('#mobile-menu [data-lang="en"]');
-                
-                if (ptLink && enLink) {
-                    if (currentLang === 'pt') {
-                        ptLink.classList.add('text-white/80');
-                        ptLink.classList.remove('text-white/60');
-                        enLink.classList.add('text-white/60');
-                        enLink.classList.remove('text-white/80');
-                    } else {
-                        enLink.classList.add('text-white/80');
-                        enLink.classList.remove('text-white/60');
-                        ptLink.classList.add('text-white/60');
-                        ptLink.classList.remove('text-white/80');
-                    }
-                }
-            }
-            
-            // Update mobile language selector on load
-            updateMobileLanguageSelector();
-            
-            // Listen for language changes
-            document.addEventListener('languageChanged', updateMobileLanguageSelector);
         });
-    </script>    <!-- Translation System -->
-    <script type="module" src="./src/translations.js"></script>    <!-- Scroll Effects System -->
-    <script type="module" src="./src/scroll-effects.js"></script>
+    </script>    <!-- Scroll Effects System -->
+    <script type="module" src="./src/scroll-effects-minimal.js"></script>
 
     <!-- Server Cache System -->
     <script type="module" src="./src/server-cache.js"></script>    <!-- CS2 Server Status Integration -->
-    <script type="module" src="./src/cs2-server-status-final.js"></script>    <!-- VPN Detection Script -->
+    <script type="module" src="./src/cs2-server-status-final.js"></script>
     <script type="module">
+        // Helper function to update the main status indicator based on server status
+        function updateStatusIndicator(status) {
+            const statusDot = document.getElementById('server-status-dot');
+            const statusText = document.getElementById('server-status-text');
+            
+            if (!statusDot || !statusText) return;
+            
+            // Clear all status classes
+            statusDot.className = 'server-status-indicator';
+            
+            // Set appropriate status class and text
+            switch (status) {
+                case 'online':
+                    statusDot.classList.add('online');
+                    statusText.textContent = 'ONLINE';
+                    statusText.className = 'text-sm font-medium text-green-500';
+                    break;
+                case 'offline':
+                    statusDot.classList.add('offline');
+                    statusText.textContent = 'OFFLINE';
+                    statusText.className = 'text-sm font-medium text-red-500';
+                    break;
+                case 'vpn':
+                    statusDot.classList.add('vpn');
+                    statusText.textContent = 'VPN';
+                    statusText.className = 'text-sm font-medium text-amber-500';
+                    break;
+                default:
+                    statusDot.classList.add('unknown');
+                    statusText.textContent = 'Verificando...';
+                    statusText.className = 'text-sm font-medium text-gray-400';
+            }
+        }
+        
         // This script is now handled by the CS2ServerStatus class
         document.addEventListener('serverStatusUpdated', function(event) {
             // VPN detection is handled inside the CS2ServerStatus class
             console.log('Server status updated:', event.detail.status);
             
+            // Update the main status indicator
+            updateStatusIndicator(event.detail.status);
+            
             // Update server IP when status is updated
             updateServerIP(event.detail);
+            
+            // Update the inline status indicator to match the main one
+            updateInlineStatusIndicator(event.detail.status);
+            
+            // Update player count in map overlay
+            updateMapPlayerCount(event.detail);
         });
         
-        // Listen for server config loaded event
-        document.addEventListener('serverConfigLoaded', function(event) {
-            updateServerIP(event.detail);
+        // Initialize status indicators on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial unknown status
+            updateStatusIndicator('unknown');
         });
-        
-        function updateServerIP(config) {
-            const serverIPInput = document.getElementById('serverIP1');
-            if (serverIPInput && config) {
-                const ip = config.SERVER_IP || config.serverIP;
-                const port = config.SERVER_PORT || config.serverPort;
-                if (ip && port) {
-                    serverIPInput.value = `connect ${ip}:${port}`;
-                    console.log('🔧 Server IP updated:', `${ip}:${port}`);
-                }
-            }
-        }
-    </script>    <!-- Initialize Steam connect button -->
+    </script>    
+
+    <!-- Initialize Steam connect button -->
     <script type="module">
         // CS2ServerStatus now handles the Steam connect button initialization
-        // This script is kept for backward compatibility
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎮 Steam connect button now handled by CS2ServerStatus');
         });
-    </script>    <!-- Development diagnostic script -->
-    <script type="module" src="./src/test-servers-page.js"></script>
-    
-    <!-- Steam region detection test -->
-    <script type="module" src="./src/test-steam-region.js"></script>
+    </script>
 </body>
 </html>

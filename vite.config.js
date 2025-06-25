@@ -12,10 +12,8 @@ export default defineConfig({
         index: './index.html',
         main: './main.html',
         servers: './servers.html',
+        about: './about.html',
       },
     },
   },
-  // Vite automatically exposes environment variables prefixed with VITE_
-  // No need to manually define them here
 });
-

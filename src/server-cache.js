@@ -1,6 +1,25 @@
-/**
- * Server-side Cache System for CS2 Server Status
- */
+// Utility functions using functional programming
+const createKey = (serverConfig) => 
+  serverConfig?.ip && serverConfig?.port ? `${serverConfig.ip}:${serverConfig.port}` : null;
+
+const isExpired = (timestamp, duration) => 
+  timestamp ? (Date.now() - timestamp) >= duration : true;
+
+const filterExpired = (cache, timestamps, duration) => {
+  const now = Date.now();
+  return [...cache.keys()].filter(key => {
+    const timestamp = timestamps.get(key);
+    return timestamp && (now - timestamp) >= duration;
+  });
+};
+
+const cleanupExpiredEntries = (cache, timestamps, expiredKeys) => {
+  expiredKeys.forEach(key => {
+    cache.delete(key);
+    timestamps.delete(key);
+  });
+  return expiredKeys.length;
+};
 
 class ServerCache {
   constructor(options = {}) {
@@ -20,37 +39,26 @@ class ServerCache {
   }
 
   generateCacheKey(serverConfig) {
-    if (!serverConfig || !serverConfig.ip || !serverConfig.port) {
-      return null;
-    }
-    return `${serverConfig.ip}:${serverConfig.port}`;
+    return createKey(serverConfig);
   }
 
-  /**
-   * Check if cache entry is valid
-   */
   isCacheValid(key) {
     if (!this.isEnabled || !this.cache.has(key)) {
       return false;
     }
 
     const timestamp = this.cacheTimestamps.get(key);
-    const now = Date.now();
-    const isValid = timestamp && (now - timestamp) < this.cacheDuration;
+    const valid = !isExpired(timestamp, this.cacheDuration);
 
-    if (!isValid && this.cache.has(key)) {
-      // Remove expired entry
+    if (!valid && this.cache.has(key)) {
       this.cache.delete(key);
       this.cacheTimestamps.delete(key);
       console.log('🗑️ Cache expired for key:', key);
     }
 
-    return isValid;
+    return valid;
   }
 
-  /**
-   * Get cached server status
-   */
   get(serverConfig) {
     const key = this.generateCacheKey(serverConfig);
     if (!key) return null;
@@ -65,21 +73,16 @@ class ServerCache {
     return null;
   }
 
-  /**
-   * Store server status in cache
-   */
   set(serverConfig, statusData) {
     if (!this.isEnabled) return;
 
     const key = this.generateCacheKey(serverConfig);
     if (!key) return;
 
-    // Ensure we don't exceed max cache size
     if (this.cache.size >= this.maxCacheSize && !this.cache.has(key)) {
       this.evictOldestEntry();
     }
 
-    // Store data with timestamp
     const cacheEntry = {
       ...statusData,
       cachedAt: Date.now(),
@@ -189,22 +192,11 @@ class ServerCache {
    * Clean up expired cache entries
    */
   cleanupExpiredEntries() {
-    const now = Date.now();
-    const expiredKeys = [];
-
-    for (const [key, timestamp] of this.cacheTimestamps) {
-      if ((now - timestamp) >= this.cacheDuration) {
-        expiredKeys.push(key);
-      }
-    }
-
-    expiredKeys.forEach(key => {
-      this.cache.delete(key);
-      this.cacheTimestamps.delete(key);
-    });
-
-    if (expiredKeys.length > 0) {
-      console.log(`🧹 Cleaned up ${expiredKeys.length} expired cache entries`);
+    const expiredKeys = filterExpired(this.cache, this.cacheTimestamps, this.cacheDuration);
+    const cleanedCount = cleanupExpiredEntries(this.cache, this.cacheTimestamps, expiredKeys);
+    
+    if (cleanedCount > 0) {
+      console.log(`🧹 Cleaned up ${cleanedCount} expired cache entries`);
     }
   }
 
@@ -459,9 +451,11 @@ class CachedServerStatusFetcher {
   }
 }
 
-// Export for use in other modules
+// Export for use in other modules (CommonJS and ES modules)
+export { ServerCache, CachedServerStatusFetcher, createKey, isExpired, filterExpired, cleanupExpiredEntries };
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ServerCache, CachedServerStatusFetcher };
+  module.exports = { ServerCache, CachedServerStatusFetcher, createKey, isExpired, filterExpired, cleanupExpiredEntries };
 } else {
   // Browser environment
   window.ServerCache = ServerCache;
