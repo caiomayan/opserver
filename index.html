@@ -25,7 +25,7 @@
           <img
             src="./img/transparentlogo.png"
             alt="OpServer Logo"
-            class="w-64 md:w-80 transition-all duration-700 ease-out hover:scale-110 opacity-90 hover:opacity-100 animate-fadeIn cursor-pointer click-transition"
+            class="w-64 md:w-80 transition-all duration-700 ease-out hover:scale-110 opacity-90 hover:opacity-100 animate-fadeIn cursor-pointer"
           />
         </div>
       </div>
@@ -68,112 +68,32 @@
         }
       }
       
-      @keyframes clickPulse {
-        0% {
-          transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
-        }
-        50% {
-          transform: scale(1.05);
-          box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
-        }
-        100% {
-          transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-        }
-      }
-      
       .animate-fadeIn {
         animation: fadeIn 1.2s ease-out forwards;
-      }
-      
-      .click-transition {
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      .pulse-effect {
-        animation: clickPulse 0.8s ease-out;
       }
     </style>
 
     <script>
-      // Language detection and redirect with smooth transition
+      // Simple redirect function
       function redirectToMain() {
-        // Check URL parameters first
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlLang = urlParams.get('lang');
-        
-        // Check localStorage
-        const storedLang = localStorage.getItem('opserver-language');
-        
-        // Check browser language
-        const browserLang = navigator.language || navigator.userLanguage;
-        const isPortuguese = browserLang.startsWith('pt');
-        
-        // Determine target language
-        const targetLang = urlLang || storedLang || (isPortuguese ? 'pt' : 'en');
-        
-        // Store the language preference
-        localStorage.setItem('opserver-language', targetLang);
-        
-        // Add smooth transition before redirect
         const logo = document.querySelector('img');
-        const body = document.body;
-        const container = document.querySelector('.relative');
         
         // Disable further clicks
         logo.style.pointerEvents = 'none';
         
-        // Add pulse effect to logo
-        logo.classList.add('pulse-effect');
+        // Simple fade transition
+        document.body.style.transition = 'opacity 0.4s ease-out';
+        document.body.style.opacity = '0';
         
-        // Scale and fade logo
+        // Redirect without language parameter
         setTimeout(() => {
-          logo.style.transform = 'scale(1.2)';
-          logo.style.opacity = '1';
-          
-          // Create expanding circle effect
-          const circle = document.createElement('div');
-          circle.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 1s ease-out;
-            pointer-events: none;
-            z-index: 10;
-          `;
-          container.appendChild(circle);
-          
-          // Expand circle
-          setTimeout(() => {
-            circle.style.width = '200vw';
-            circle.style.height = '200vw';
-            circle.style.background = 'rgba(255, 255, 255, 0.8)';
-          }, 50);
-          
-        }, 200);
-        
-        // Fade out the entire page
-        setTimeout(() => {
-          body.style.transition = 'opacity 0.6s ease-out';
-          body.style.opacity = '0';
-        }, 600);
-        
-        // Redirect after complete transition
-        setTimeout(() => {
-          window.location.href = `./main.html?lang=${targetLang}`;
-        }, 1200);
+          window.location.href = './main.html';
+        }, 400);
       }
 
-      // Show page content, NO auto-redirect
+      // Show page content
       document.addEventListener('DOMContentLoaded', () => {
         document.body.style.opacity = '1';
-        // Removed auto-redirect - only redirect on click
       });
     </script>
   </body>
