@@ -1,46 +1,57 @@
-// Functional programming approach for scroll effects
-const setStyles = (element, styles) => Object.assign(element.style, styles);
-
-const animateElement = (element) => {
-  setStyles(element, {
-    opacity: '0',
-    transform: 'translateY(20px)',
-    transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-  });
-  
-  setTimeout(() => setStyles(element, {
-    opacity: '1',
-    transform: 'translateY(0)'
-  }), 300);
+// Exact Blackbox.ai typewriter effect
+const createCursor = () => {
+  const cursor = document.createElement('span');
+  // Styled span for a non-blinking dot cursor
+  cursor.style.cssText = `
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+    transform: translateY(-1px); /* Fine-tune vertical alignment */
+  `;
+  return cursor;
 };
 
-const createTypewriter = (element, text, speed = 50) => {
-  element.textContent = '';
-  let i = 0;
+const typewriterEffect = (element, text) => {
+  element.innerHTML = '';
+  const cursor = createCursor();
+  element.appendChild(cursor);
   
-  const typeWriter = () => {
-    if (i < text.length) {
-      element.textContent += text.charAt(i++);
-      setTimeout(typeWriter, speed);
+  let charIndex = 0;
+  
+  const addChar = () => {
+    if (charIndex < text.length) {
+      const char = text.charAt(charIndex);
+      const textNode = document.createTextNode(char);
+      element.insertBefore(textNode, cursor);
+      charIndex++;
+      
+      // Faster, more natural typing speed
+      setTimeout(addChar, 60);
+    } else {
+      // Remove cursor immediately after completion
+      if (cursor.parentNode) {
+        cursor.parentNode.removeChild(cursor);
+      }
     }
   };
   
-  return typeWriter;
+  // Start immediately
+  addChar();
 };
 
-const initializeTypewriter = (element) => {
-  const text = element.textContent.trim();
-  animateElement(element);
-  
-  const typeWriter = createTypewriter(element, text);
-  setTimeout(typeWriter, 800);
-};
-
-// Initialize effects using functional approach
+// Initialize the effect
 document.addEventListener('DOMContentLoaded', () => {
-  const typewriterElements = Array.from(document.querySelectorAll('[data-typewriter]'));
-  typewriterElements.forEach(initializeTypewriter);
+  document.querySelectorAll('[data-typewriter]').forEach(element => {
+    const text = element.textContent.trim();
+    
+    setTimeout(() => {
+      typewriterEffect(element, text);
+    }, element.dataset.typewriter === 'title' ? 0 : 400);
+  });
 });
 
-// Export utilities for reuse
-export { setStyles, animateElement, createTypewriter, initializeTypewriter };
+export { typewriterEffect, createCursor };
