@@ -366,13 +366,23 @@
 
       // Add smooth scroll to navbar links
       document.addEventListener('DOMContentLoaded', () => {
-        const navLinks = document.querySelectorAll('nav a[href^="#"]');
-        navLinks.forEach(link => {
-          link.addEventListener('click', (e) => {
+        const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+        
+        const validLinks = navLinks.filter(link => 
+          link.getAttribute('href') && link.getAttribute('href').startsWith('#')
+        );
+        
+        const linkConfigs = validLinks.map(link => ({
+          element: link,
+          targetId: link.getAttribute('href'),
+          clickHandler: (e) => {
             e.preventDefault();
-            const targetId = link.getAttribute('href');
-            smoothScrollTo(targetId);
-          });
+            smoothScrollTo(link.getAttribute('href'));
+          }
+        }));
+        
+        linkConfigs.forEach(({ element, clickHandler }) => {
+          element.addEventListener('click', clickHandler);
         });
       });
 
@@ -537,16 +547,31 @@
         });
         
         // Close menu when clicking on navigation links
-        mobileMenuLinks.forEach(link => {
-          link.addEventListener('click', function(e) {
-            // If it's an internal link (starts with #), close menu after a short delay
-            if (this.getAttribute('href').startsWith('#')) {
+        const mobileMenuLinksArray = Array.from(mobileMenuLinks);
+        
+        const internalLinks = mobileMenuLinksArray.filter(link => 
+          link.getAttribute('href') && link.getAttribute('href').startsWith('#')
+        );
+        
+        const externalLinks = mobileMenuLinksArray.filter(link => 
+          link.getAttribute('href') && !link.getAttribute('href').startsWith('#')
+        );
+        
+        const linkHandlers = mobileMenuLinksArray.map(link => ({
+          element: link,
+          isInternal: link.getAttribute('href') && link.getAttribute('href').startsWith('#'),
+          handler: function(e) {
+            const isInternal = this.getAttribute('href') && this.getAttribute('href').startsWith('#');
+            if (isInternal) {
               setTimeout(closeMobileMenu, 300);
             } else {
-              // For external links like servers.html, close immediately
               closeMobileMenu();
             }
-          });
+          }
+        }));
+        
+        linkHandlers.forEach(({ element, handler }) => {
+          element.addEventListener('click', handler);
         });
         
         // Close menu on escape key
@@ -564,7 +589,7 @@
         });
       });
     </script>      <!-- Importar o sistema mínimo de efeitos de scroll (apenas para OPSERVER e Um Grande Caos) -->
-    <script type="module" src="./src/scroll-effects-minimal.js"></script>
+    <script type="module" src="./src/typewriter-effects.js"></script>
     
     <!-- Theme Switcher -->
     <script type="module" src="./src/theme-switcher.js"></script>

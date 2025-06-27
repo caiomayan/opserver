@@ -39,12 +39,30 @@ const typewriterEffect = (element, text) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-typewriter]').forEach(element => {
-    const text = element.textContent.trim();
-    
+  const typewriterElements = Array.from(document.querySelectorAll('[data-typewriter]'));
+  
+  const titleElements = typewriterElements.filter(element => 
+    element.dataset.typewriter === 'title'
+  );
+  
+  const subtitleElements = typewriterElements.filter(element => 
+    element.dataset.typewriter === 'subtitle'
+  );
+  
+  const elementsWithText = typewriterElements.map(element => ({
+    element,
+    text: element.textContent.trim(),
+    delay: element.dataset.typewriter === 'title' ? 0 : 400
+  }));
+  
+  const totalCharacters = elementsWithText.reduce((total, item) => 
+    total + item.text.length, 0
+  );
+  
+  elementsWithText.forEach(({ element, text, delay }) => {
     setTimeout(() => {
       typewriterEffect(element, text);
-    }, element.dataset.typewriter === 'title' ? 0 : 400);
+    }, delay);
   });
 });
 
