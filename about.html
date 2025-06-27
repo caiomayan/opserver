@@ -32,6 +32,195 @@
         scroll-margin-top: 100px;
       }
       
+      /* Blackbox.ai Inspired Components */
+      .glass-card {
+        background: #0a0a0a;
+        border: 1px solid #1a1a1a;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .glass-card:hover {
+        border-color: #2a2a2a;
+        background: #0d0d0d;
+      }
+      
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+      
+      .feature-card {
+        background: #080808;
+        border: 1px solid #1a1a1a;
+        padding: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .feature-card:hover {
+        border-color: #2a2a2a;
+        transform: translateY(-1px);
+      }
+      
+      .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .feature-card:hover::before {
+        opacity: 1;
+      }
+      
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #fbbf24;
+        animation: pulse-status 2s infinite;
+      }
+      
+      @keyframes pulse-status {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      
+      .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .info-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      .info-list li:last-child {
+        border-bottom: none;
+      }
+      
+      .info-icon {
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        opacity: 0.6;
+      }
+      
+      .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 11px;
+        font-weight: 600;
+        color: #ffffff;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      
+      .action-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      
+      .action-button:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.18);
+        transform: translateY(-1px);
+      }
+      
+      .action-button.primary {
+        background: #ffffff;
+        color: #000000;
+        border-color: #ffffff;
+      }
+      
+      .action-button.primary:hover {
+        background: #f5f5f5;
+        border-color: #f5f5f5;
+      }
+      
+      .warning-card {
+        background: rgba(251, 191, 36, 0.05);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-left: 3px solid #fbbf24;
+      }
+      
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      
+      .section-icon {
+        width: 20px;
+        height: 20px;
+        opacity: 0.8;
+      }
+      
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+      }
+      
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .feature-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        
+        .feature-card {
+          padding: 20px;
+        }
+      }
+      
       .hamburger-lines {
         display: flex;
         flex-direction: column;
@@ -286,243 +475,165 @@
     <!-- Hero Section -->
     <section class="pt-28 pb-8 px-8">
         <div class="max-w-6xl mx-auto text-center">
-            <h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-none mb-4">
-                SOBRE O OPSERVER
-            </h1>
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight text-white" data-typewriter="title">
+                    OPSERVER
+                </h1>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    BETA
+                </div>
+            </div>
             <p class="text-sm text-white/70 max-w-3xl mx-auto">
-                Plataforma de servidores Counter-Strike 2 com sistema de skins gratuitas
+                A Great Chaos
             </p>
         </div>
     </section>
 
     <!-- Main Content -->
     <main class="py-6 px-8 flex-1">
-      <div class="max-w-7xl mx-auto">
-        <div class="grid gap-8">
+      <div class="max-w-6xl mx-auto">
+        
+        <!-- Vision Cards -->
+        <div class="feature-grid mb-16">
           
-          <!-- Sobre o Projeto -->
-          <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 class="font-display text-xl font-semibold mb-6 text-white">O Projeto</h2>
-            <div class="space-y-4 text-white/80 text-sm leading-relaxed">
-              <p>
-                O <strong class="text-white">OPSERVER</strong> é uma plataforma dedicada ao Counter-Strike 2 que oferece uma experiência única de jogo com sistema de skins completamente gratuito. Nossa missão é proporcionar aos jogadores acesso a todas as skins do jogo sem custos adicionais.
-              </p>
-              <p>
-                Atualmente em fase <strong class="text-white">BETA</strong>, a plataforma conta com servidores otimizados para diferentes modalidades de jogo, oferecendo uma experiência estável e de alta qualidade para nossa comunidade.
-              </p>
-              <div class="pt-2">
-                <p class="text-white font-medium mb-3">Futuro da Plataforma:</p>
-                <ul class="space-y-2 ml-4">
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-3">•</span>
-                    <span>Expansão com mais servidores e modalidades</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-3">•</span>
-                    <span>Sistema de competições e torneios</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-3">•</span>
-                    <span>Ranking global de jogadores</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-3">•</span>
-                    <span>Eventos especiais da comunidade</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-3">•</span>
-                    <span>Integração com outras plataformas de jogos</span>
-                  </li>
-                </ul>
-              </div>
+          <!-- Current -->
+          <div class="feature-card">
+            <div class="section-header">
+              <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <h2 class="section-title">Agora</h2>
             </div>
+            <ul class="info-list">
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <span class="text-white/80 text-sm">Skins gratuitas para todas as armas</span>
+              </li>
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                </svg>
+                <span class="text-white/80 text-sm">Servidores 128 tick otimizados</span>
+              </li>
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-white/80 text-sm">Modalidades Retake e Mix</span>
+              </li>
+            </ul>
           </div>
 
-          <!-- Instruções do Inventário -->
-          <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 class="font-display text-xl font-semibold mb-6 text-white">Como Usar o Inventário</h2>
-            <p class="text-white/80 text-sm leading-relaxed mb-6">
-              O sistema de inventário permite que você equipe qualquer skin do Counter-Strike 2 gratuitamente. Siga estas instruções para configurar suas skins:
-            </p>
-            
-            <div class="space-y-4">
-              <div class="flex items-start space-x-4">
-                <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span class="text-white text-xs font-semibold">1</span>
-                </div>
-                <div>
-                  <h3 class="font-medium text-white text-sm mb-1">Acesse o Sistema</h3>
-                  <p class="text-white/70 text-sm">
-                    Clique no link <strong class="text-white">"INVENTÁRIO"</strong> na navegação ou acesse diretamente: 
-                    <a href="https://inventory.cstrike.app/" class="text-blue-400 hover:text-blue-300 underline text-sm">inventory.cstrike.app</a>
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start space-x-4">
-                <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span class="text-white text-xs font-semibold">2</span>
-                </div>
-                <div>
-                  <h3 class="font-medium text-white text-sm mb-1">Faça Login com Steam</h3>
-                  <p class="text-white/70 text-sm">
-                    Utilize sua conta Steam para acessar o sistema de inventário. Isso é necessário para sincronizar suas configurações de skins com nossos servidores.
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start space-x-4">
-                <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span class="text-white text-xs font-semibold">3</span>
-                </div>
-                <div>
-                  <h3 class="font-medium text-white text-sm mb-1">Escolha suas Skins</h3>
-                  <p class="text-white/70 text-sm">
-                    Navegue pelas categorias de armas e selecione as skins desejadas. Você tem acesso a todas as skins disponíveis no Counter-Strike 2, incluindo as mais raras e exclusivas.
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start space-x-4">
-                <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span class="text-white text-xs font-semibold">4</span>
-                </div>
-                <div>
-                  <h3 class="font-medium text-white text-sm mb-1">Salve as Configurações</h3>
-                  <p class="text-white/70 text-sm">
-                    Após selecionar suas skins, certifique-se de salvar as configurações no sistema. Suas escolhas ficarão vinculadas à sua conta Steam.
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start space-x-4">
-                <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span class="text-white text-xs font-semibold">5</span>
-                </div>
-                <div>
-                  <h3 class="font-medium text-white text-sm mb-1">Reconecte ao Servidor</h3>
-                  <p class="text-white/70 text-sm">
-                    Para que as skins sejam aplicadas, você precisa se reconectar ao servidor. Saia do jogo e entre novamente em qualquer servidor OPSERVER para ver suas novas skins.
-                  </p>
-                </div>
-              </div>
+          <!-- Future -->
+          <div class="feature-card">
+            <div class="section-header">
+              <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              <h2 class="section-title">Futuro</h2>
             </div>
-            
-            <div class="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <h4 class="font-medium text-blue-400 text-sm mb-2">💡 Dica Importante</h4>
-              <p class="text-white/70 text-xs leading-relaxed">
-                As skins são aplicadas automaticamente quando você se conecta aos nossos servidores. Se não aparecerem imediatamente, aguarde alguns segundos ou reconecte-se ao servidor.
-              </p>
-            </div>
-            
-            <div class="mt-4 p-4 bg-white/5 border-l-4 border-blue-400 rounded-r-lg">
-              <p class="text-white/70 text-xs leading-relaxed">
-                <strong class="text-white">Nota:</strong> O site do inventário não foi criado por mim, mas ele é usado via plugin que foi instalado no servidor. Sempre que fizer uma alteração no site, relogue no servidor para ver as alterações.
-              </p>
-            </div>
+            <ul class="info-list">
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                <span class="text-white/80 text-sm">Sistema de torneios competitivos</span>
+              </li>
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span class="text-white/80 text-sm">Ranking global de players</span>
+              </li>
+              <li>
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span class="text-white/80 text-sm">Expansão da comunidade</span>
+              </li>
+            </ul>
           </div>
-
-          <!-- Aviso sobre Status do Servidor -->
-          <div class="bg-amber-500/10 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-8">
-            <h2 class="font-display text-xl font-semibold mb-6 text-amber-400">⚠️ Sobre o Status dos Servidores</h2>
-            <div class="space-y-4 text-white/80 text-sm leading-relaxed">
-              <p>
-                Se você está vendo <strong class="text-white">"Verificando..."</strong> no status dos servidores, isso pode ocorrer por alguns motivos:
-              </p>
-              
-              <div class="grid md:grid-cols-2 gap-4 mt-4">
-                <div class="bg-black/20 p-4 rounded-lg">
-                  <h3 class="font-medium text-amber-300 text-sm mb-2">🔧 Problemas de API</h3>
-                  <ul class="space-y-1 text-xs">
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Manutenção temporária do sistema</span>
-                    </li>
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Atualizações em andamento</span>
-                    </li>
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Sobrecarga temporária dos servidores</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div class="bg-black/20 p-4 rounded-lg">
-                  <h3 class="font-medium text-amber-300 text-sm mb-2">🌐 Problemas de Conexão</h3>
-                  <ul class="space-y-1 text-xs">
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Uso de VPN pode afetar a conectividade</span>
-                    </li>
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Restrições de rede corporativa/escolar</span>
-                    </li>
-                    <li class="flex items-start">
-                      <span class="text-white/40 mr-2">•</span>
-                      <span>Problemas temporários de DNS</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div class="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <h4 class="font-medium text-green-400 text-sm mb-2">✅ Soluções Recomendadas</h4>
-                <ul class="text-white/70 text-xs space-y-1">
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-2">•</span>
-                    <span>Aguarde alguns minutos e recarregue a página</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-2">•</span>
-                    <span>Desative VPN temporariamente se estiver usando</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-2">•</span>
-                    <span>Tente acessar de outra rede se possível</span>
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-white/40 mr-2">•</span>
-                    <span>Verifique se não há bloqueios de firewall</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <p class="text-xs text-white/60 mt-4">
-                <strong class="text-white">Nota:</strong> O status atual do servidor pode estar como Verificando..., porque não foi aplicado a API necessária para visualizar o status do servidor, ou então, o servidor está sendo executado em algum VPN. Mesmo assim, os servidores geralmente estão funcionais e você pode tentar se conectar diretamente usando os IPs fornecidos.
-              </p>
-            </div>
-          </div>
-
-          <!-- Links Úteis -->
-          <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 class="font-display text-xl font-semibold mb-6 text-white">Links Úteis</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 class="font-medium text-white text-sm mb-2">🎮 Jogar</h3>
-                <p class="text-white/70 text-xs mb-4 leading-relaxed">
-                  Acesse nossa lista de servidores ativos e comece a jogar agora mesmo.
-                </p>
-                <a href="servers.html" class="inline-flex items-center px-4 py-2 bg-white text-black text-xs font-medium hover:bg-white/90 transition-colors duration-200 rounded">
-                  Ver Servidores
-                </a>
-              </div>
-              
-              <div>
-                <h3 class="font-medium text-white text-sm mb-2">🎨 Inventário</h3>
-                <p class="text-white/70 text-xs mb-4 leading-relaxed">
-                  Configure suas skins gratuitas no sistema de inventário.
-                </p>
-                <a href="https://inventory.cstrike.app/" class="inline-flex items-center px-4 py-2 bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors duration-200 border border-white/20 rounded">
-                  Abrir Inventário
-                </a>
-              </div>
-            </div>
-          </div>
-          
         </div>
+
+        <!-- Inventory Guide -->
+        <div class="glass-card p-8 mb-8">
+          <div class="section-header">
+            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <h2 class="section-title">Sistema de Inventário</h2>
+          </div>
+          
+          <p class="text-white/70 text-sm mb-6 leading-relaxed">
+            Configure skins gratuitas através do sistema externo. Processo simples e rápido.
+          </p>
+          
+          <div class="grid md:grid-cols-3 gap-6 mb-6">
+            <div class="flex items-start gap-3">
+              <div class="step-number">1</div>
+              <div>
+                <h3 class="text-white text-sm font-medium mb-1">Acesse o Sistema</h3>
+                <p class="text-white/60 text-xs">Login via Steam no inventory.cstrike.app</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-3">
+              <div class="step-number">2</div>
+              <div>
+                <h3 class="text-white text-sm font-medium mb-1">Escolha Skins</h3>
+                <p class="text-white/60 text-xs">Selecione qualquer skin disponível</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-3">
+              <div class="step-number">3</div>
+              <div>
+                <h3 class="text-white text-sm font-medium mb-1">Reconecte</h3>
+                <p class="text-white/60 text-xs">Entre novamente no servidor</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <a href="https://inventory.cstrike.app/" class="action-button primary">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+              Abrir Inventário
+            </a>
+            <a href="servers.html" class="action-button">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              Ver Servidores
+            </a>
+          </div>
+        </div>
+
+        <!-- Status Warning -->
+        <div class="warning-card glass-card p-6">
+          <div class="flex items-start gap-4">
+            <svg class="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+            <div>
+              <h3 class="text-amber-400 font-medium text-sm mb-2">Status "Verificando"</h3>
+              <p class="text-white/70 text-xs mb-3 leading-relaxed">
+                Se os servidores aparecem como "Verificando", pode ser devido a problemas de API, manutenção ou uso de VPN. 
+                Os servidores geralmente estão funcionais - tente conectar diretamente.
+              </p>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-white/50">Soluções:</span>
+                <span class="text-white/60">Recarregue a página • Desative VPN • Aguarde alguns minutos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
 
@@ -648,5 +759,8 @@
         console.log('✅ About page initialized successfully');
       });
     </script>
+
+    <!-- Scroll Effects System -->
+    <script type="module" src="./src/scroll-effects-minimal.js"></script>
 </body>
 </html>

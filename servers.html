@@ -51,91 +51,318 @@
         }        .hamburger-active .line3 {
             transform: rotate(-45deg) translate(7px, -6px);
         }        
-        /* New Server Card Styles - Inspired by Scale.com & Blackbox.ai */
-        .server-card {
-            background: #0A0A0A;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: border-color 0.2s ease;
+        /* OpServer Card - Blackbox.ai Inspired Design */
+        .opserver-card {
+            position: relative;
+            background: #080808;
+            border: 1px solid #1a1a1a;
             overflow: hidden;
+            min-height: 480px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .server-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
+        
+        .opserver-card:hover {
+            border-color: #2a2a2a;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-
-        .server-card-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        
+        .opserver-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
         }
-
-        .server-card-body {
-            padding: 1.5rem;
-            display: grid;
-            gap: 1rem;
+        
+        .map-background {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.15;
+            transition: all 0.5s ease;
+            filter: blur(1px) saturate(1.2);
         }
-
-        .server-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1.5rem;
+        
+        .opserver-card:hover .map-background {
+            opacity: 0.25;
+            filter: blur(0px) saturate(1.4);
+            transform: scale(1.05);
         }
-
-        .info-item .label {
-            font-size: 0.875rem; /* 14px */
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 0.25rem;
+        
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(0, 0, 0, 0.85) 0%,
+                rgba(0, 0, 0, 0.75) 40%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
         }
-
-        .info-item .value {
-            font-size: 1rem; /* 16px */
-            font-weight: 500;
-            color: #FFFFFF;
+        
+        .opserver-content {
+            position: relative;
+            z-index: 2;
+            padding: 32px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
-
+        
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #6b7280; /* gray-500 as default (unknown) */
-        }
-
-        .status-dot.online {
-            background-color: #22c55e; /* green-500 */
-        }
-
-        .status-dot.offline {
-            background-color: #ef4444; /* red-500 */
-        }
-
-        .connect-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            font-weight: 500;
-            color: #FFFFFF;
-            transition: all 0.2s ease;
-        }
-
-        .connect-btn:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: #6b7280;
+            position: relative;
         }
         
-        @keyframes pulse-status {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.3); }
+        .status-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-dot.checking {
+            background: #6b7280;
+            animation: pulse-checking 2s infinite;
+        }
+        
+        @keyframes pulse-checking {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .status-dot.online::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: pulse-ring 2s infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0; }
+            100% { transform: scale(0.8); opacity: 0.3; }
+        }
+        
+        .status-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-text.online {
+            color: #10b981;
+        }
+        
+        .player-count {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: #e5e7eb;
+        }
+        
+        .server-info {
+            flex: 1;
+            margin-bottom: 24px;
+        }
+        
+        .server-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        
+        .server-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .detail-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .detail-value .fi {
+            width: 16px;
+            height: 12px;
+        }
+        
+        .server-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .feature-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .feature-tag-dev {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(185, 140, 16, 0.1);
+            border: 1px solid rgba(185, 112, 16, 0.2);
+            color: #b97e10;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .feature-icon {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2.5;
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .connect-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+            border: none;
+            color: #111827;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .connect-btn:hover {
+            background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .connect-btn:active {
+            transform: translateY(0);
+        }
+        
+        .action-icon {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .opserver-content {
+                padding: 24px;
+            }
+            
+            .server-name {
+                font-size: 24px;
+            }
+            
+            .server-details {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .server-features {
+                justify-content: center;
+            }
+        }
+        
+        /* Subtle animation effects */
+        .opserver-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.02) 50%,
+                transparent 100%
+            );
+            transition: left 0.5s ease;
+            z-index: 3;
+        }
+        
+        .opserver-card:hover::before {
+            left: 100%;
         }/* Mobile menu base styles */
         #mobile-menu {
             transform: translateX(100%);
@@ -247,401 +474,7 @@
             }
         }
 
-        /* Scale.com inspired leaderboard-style server card */
-        .server-card {
-            background: rgba(9, 9, 11, 0.6);
-            border: 1px solid rgba(39, 39, 42, 0.8);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.15s ease;
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-        }
-        
-        .server-card:hover {
-            border-color: rgba(63, 63, 70, 0.8);
-            background: rgba(12, 12, 14, 0.7);
-        }
-        
-        .server-main {
-            padding: 20px 24px;
-        }
-        
-        .server-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(39, 39, 42, 0.6);
-        }
-        
-        .server-title-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .server-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #fafafa;
-            margin: 0;
-            letter-spacing: -0.025em;
-            line-height: 1.3;
-        }
-        
-        .server-subtitle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #a1a1aa;
-            font-weight: 500;
-        }
-        
-        .server-flag {
-            width: 16px;
-            height: 12px;
-            border-radius: 2px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        
-        .server-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #71717a;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #71717a;
-            position: relative;
-        }
-        
-        .status-dot.online {
-            background-color: #22c55e;
-        }
-        
-        .status-dot.online::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background-color: #22c55e;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: pulse-dot 2s infinite;
-        }
-        
-        .status-dot.offline {
-            background-color: #ef4444;
-        }
-        
-        @keyframes pulse-dot {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.5); opacity: 0; }
-        }
-        
-        .server-content {
-            display: grid;
-            grid-template-columns: 1fr 220px;
-            gap: 24px;
-            align-items: start;
-        }
-        
-        .server-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
-        }
-        
-        .metric-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .metric-label {
-            font-size: 11px;
-            color: #71717a;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-        
-        .metric-value {
-            font-size: 16px;
-            color: #fafafa;
-            font-weight: 600;
-            letter-spacing: -0.025em;
-        }
-        
-        .metric-value.mono {
-            font-family: ui-monospace, 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', monospace;
-            font-size: 14px;
-            color: #d4d4d8;
-            font-weight: 500;
-        }
-        
-        .server-map {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            border: 1px solid rgba(63, 63, 70, 0.3);
-            box-shadow: 
-                0 4px 12px rgba(0, 0, 0, 0.15),
-                0 2px 6px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.02);
-            transition: all 0.3s ease;
-        }
-        
-        .server-card:hover .server-map {
-            border-color: rgba(82, 82, 91, 0.4);
-            box-shadow: 
-                0 8px 25px rgba(0, 0, 0, 0.2),
-                0 4px 10px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.03);
-            transform: translateY(-1px);
-        }
-        
-        .map-image {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            opacity: 0.9;
-            transition: all 0.3s ease;
-            filter: saturate(1.1) contrast(1.05);
-        }
-        
-        .server-card:hover .map-image {
-            opacity: 1;
-            filter: saturate(1.2) contrast(1.1) brightness(1.02);
-            transform: scale(1.02);
-        }
-        
-        .map-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(
-                180deg, 
-                transparent 0%, 
-                rgba(0, 0, 0, 0.3) 30%,
-                rgba(0, 0, 0, 0.7) 70%,
-                rgba(0, 0, 0, 0.9) 100%
-            );
-            padding: 16px;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-        }
-        
-        .map-info {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        
-        .map-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0;
-            text-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.8),
-                0 1px 2px rgba(0, 0, 0, 0.9);
-            letter-spacing: -0.025em;
-            text-transform: uppercase;
-        }
-        
-        .map-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .map-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            animation: pulse-map 2s infinite;
-        }
-        
-        @keyframes pulse-map {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        
-        .map-preview-wrapper {
-            position: relative;
-        }
-        
-        .map-preview-wrapper::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: -1px;
-            right: -1px;
-            bottom: -1px;
-            background: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.1) 0%,
-                transparent 50%,
-                rgba(255, 255, 255, 0.05) 100%
-            );
-            border-radius: 12px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .server-card:hover .map-preview-wrapper::before {
-            opacity: 1;
-        }
-        
-        /* Subtle scan line effect */
-        .server-map::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.03) 50%,
-                transparent 100%
-            );
-            animation: scan-line 3s ease-in-out infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes scan-line {
-            0%, 90%, 100% { left: -100%; }
-            10%, 80% { left: 100%; }
-        }
-        
-        /* Enhanced corner accent */
-        .map-preview-wrapper::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 6px;
-            height: 6px;
-            background: rgba(34, 197, 94, 0.8);
-            border-radius: 50%;
-            box-shadow: 
-                0 0 8px rgba(34, 197, 94, 0.4),
-                0 0 12px rgba(34, 197, 94, 0.2);
-            animation: pulse-corner 2s infinite;
-            z-index: 10;
-        }
-        
-        @keyframes pulse-corner {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        
-        .server-actions {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(39, 39, 42, 0.6);
-        }
-        
-        .action-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.4);
-            border-radius: 8px;
-            color: #e4e4e7;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            letter-spacing: -0.025em;
-        }
-        
-        .action-btn:hover {
-            background: rgba(63, 63, 70, 0.6);
-            border-color: rgba(82, 82, 91, 0.6);
-            color: #fafafa;
-        }
-        
-        .action-btn.primary {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
-            color: #fafafa;
-        }
-        
-        .action-btn.primary:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.18);
-        }
-        
-        .action-icon {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-        
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .server-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .server-main {
-                padding: 16px 20px;
-            }
-            
-            .server-header {
-                margin-bottom: 16px;
-                padding-bottom: 12px;
-            }
-            
-            .server-metrics {
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-            
-            .server-map {
-                order: -1;
-            }
-            
-            .map-image {
-                height: 120px;
-            }
-        }
+
     </style>
 </head>    <body class="bg-black text-white antialiased min-h-screen overflow-x-hidden selection:bg-white selection:text-black flex flex-col">    <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 backdrop-blur-xl bg-black/95">
@@ -727,7 +560,7 @@
                 SERVIDORES
             </h1>
             <p class="text-sm text-white/70 max-w-3xl mx-auto">
-                Informações sobre o nosso servidor de CS2
+                Acesse o nosso servidor logo abaixo
             </p>
         </div>
     </section>    <!-- Servers Grid -->
@@ -735,77 +568,78 @@
         <div class="max-w-7xl mx-auto">
             <div class="grid gap-8">
                 
-                <!-- Server Card - Scale.com Leaderboard Style -->
-                <div class="server-card">
-                    <div class="server-main">
-                        <!-- Server Header -->
-                        <div class="server-header">
-                            <div class="server-title-section">
-                                <h2 class="server-title">OPSERVER CS2</h2>
-                                <div class="server-subtitle">
-                                    <span id="server-country-flag" class="fi fi-br server-flag"></span>
-                                    <span>São Paulo, Brazil</span>
-                                </div>
+                <!-- OpServer CS2 Server Card -->
+                <div class="opserver-card">
+                    <div class="opserver-background">
+                        <img src="./img/maps/unknown.svg" alt="Mapa Desconhecido" class="map-background">
+                        <div class="background-overlay"></div>
+                    </div>
+                    
+                    <div class="opserver-content">
+                        <!-- Status Bar -->
+                        <div class="status-bar">
+                            <div class="status-indicator">
+                                <div class="status-dot checking"></div>
+                                <span class="status-text">VERIFICANDO</span>
                             </div>
-                            <div class="server-status">
-                                <div id="server-status-indicator" class="status-dot"></div>
-                                <span id="server-status-text">Verificando</span>
+                            <div class="player-count">
+                                <span class="players">--/--</span>
                             </div>
                         </div>
 
-                        <!-- Server Content -->
-                        <div class="server-content">
-                            <!-- Server Metrics -->
-                            <div class="server-metrics">
-                                <div class="metric-item">
-                                    <span class="metric-label">Jogadores</span>
-                                    <span id="server-players" class="metric-value">-/-</span>
+                        <!-- Server Info -->
+                        <div class="server-info">
+                            <h2 class="server-name">༒</h2>
+                            <div class="server-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">MAPA</span>
+                                    <span class="detail-value">Carregando...</span>
                                 </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">Latência</span>
-                                    <span id="server-ping" class="metric-value">-ms</span>
+                                <div class="detail-item">
+                                    <span class="detail-label">MODO</span>
+                                    <span class="detail-value">Retake</span>
                                 </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">Endereço</span>
-                                    <span id="server-ip" class="metric-value mono">-</span>
+                                <div class="detail-item">
+                                    <span class="detail-label">REGIÃO</span>
+                                    <span class="detail-value">
+                                        <i class="fi fi-br"></i>
+                                        Brasil
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">PING</span>
+                                    <span class="detail-value">--ms</span>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Map Preview -->
-                            <div class="map-preview-wrapper">
-                                <div class="server-map">
-                                    <img id="server-map-image" src="./public/img/maps/unknown.svg" alt="Server Map" class="map-image">
-                                    <div class="map-overlay">
-                                        <div class="map-info">
-                                            <h3 id="server-map-name" class="map-name">Unknown</h3>
-                                            <div class="map-indicator">
-                                                <div class="map-dot"></div>
-                                                <span>LIVE</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Features -->
+                        <div class="server-features">
+                            <div class="feature-tag">
+                                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                ws, gloves, knifes
                             </div>
+                            <div class="feature-tag-dev">
+                                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                </svg>
+                                em desenvolvimento
+                            </div>
+                        </div>
 
-                            <!-- Actions -->
-                            <div class="server-actions">
-                                <button class="action-btn" onclick="copyServerIP('server-ip-input')">
-                                    <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v8a2 2 0 002 2h2m0 0h8a2 2 0 002-2V7a2 2 0 00-2-2h-2m0 0V3a2 2 0 10-4 0v2m4 0a2 2 0 104 0v2"></path>
-                                    </svg>
-                                    Copiar IP
-                                </button>
-                                <a id="connect-button" href="#" class="action-btn primary">
-                                    <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                    </svg>
-                                    Conectar
-                                </a>
-                            </div>
+                        <!-- Actions -->
+                        <div class="server-actions">
+                            <button class="connect-btn primary" onclick="copyServerIP('serverIP')">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                Conectar
+                            </button>
+                            <input type="hidden" id="serverIP" value="connect 26.210.212.103:27015">
                         </div>
                     </div>
-
-                    <input type="hidden" id="server-ip-input" value="">
                 </div>
 
             </div>
@@ -831,14 +665,10 @@
     <script>
         function copyServerIP(inputId) {
             const hiddenInput = document.getElementById(inputId);
-            const serverIPElement = document.getElementById('server-ip');
-            const serverIP = serverIPElement ? serverIPElement.textContent : '';
-            
-            // Set the hidden input value
-            if (hiddenInput) hiddenInput.value = serverIP;
+            const serverIP = hiddenInput ? hiddenInput.value : 'connect 26.115.124.39:27015';
             
             // Find the copy button
-            const copyButton = document.querySelector('.action-btn[onclick*="copyServerIP"]');
+            const copyButton = document.querySelector('.connect-btn[onclick*="copyServerIP"]');
             
             // Try to use modern clipboard API
             if (navigator.clipboard && window.isSecureContext) {
@@ -1006,69 +836,6 @@
     </script>    <!-- Scroll Effects System -->
     <script type="module" src="./src/scroll-effects-minimal.js"></script>
 
-    <!-- Server Cache System -->
-    <script type="module" src="./src/server-cache.js"></script>
-    <script type="module">
-        // Helper function to update the main status indicator based on server status
-        function updateStatusIndicator(status) {
-            const statusIndicator = document.getElementById('server-status-indicator');
-            const statusText = document.getElementById('server-status-text');
-            
-            if (!statusIndicator || !statusText) return;
-            
-            // Clear all status classes
-            statusIndicator.className = 'status-dot';
-            
-            // Set appropriate status class and text
-            switch (status) {
-                case 'online':
-                    statusIndicator.classList.add('online');
-                    statusText.textContent = 'ONLINE';
-                    break;
-                case 'offline':
-                    statusIndicator.classList.add('offline');
-                    statusText.textContent = 'OFFLINE';
-                    break;
-                case 'vpn':
-                    statusIndicator.classList.add('online');
-                    statusText.textContent = 'VPN';
-                    break;
-                default:
-                    statusText.textContent = 'Verificando';
-            }
-        }
-        
-        // This script is now handled by the CS2ServerStatus class
-        document.addEventListener('serverStatusUpdated', function(event) {
-            // VPN detection is handled inside the CS2ServerStatus class
-            console.log('Server status updated:', event.detail.status);
-            
-            // Update the main status indicator
-            updateStatusIndicator(event.detail.status);
-            
-            // Update server IP when status is updated
-            updateServerIP(event.detail);
-            
-            // Update the inline status indicator to match the main one
-            updateInlineStatusIndicator(event.detail.status);
-            
-            // Update player count in map overlay
-            updateMapPlayerCount(event.detail);
-        });
-        
-        // Initialize status indicators on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set initial unknown status
-            updateStatusIndicator('unknown');
-        });
-    </script>    
 
-    <!-- Initialize Steam connect button -->
-    <script type="module">
-        // CS2ServerStatus now handles the Steam connect button initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎮 Steam connect button now handled by CS2ServerStatus');
-        });
-    </script>
 </body>
 </html>
