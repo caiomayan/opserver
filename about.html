@@ -387,7 +387,9 @@
               <img
                 src="./img/favicon.ico"
                 alt="OpServer"
-                class="w-8 h-8 filter brightness-0 invert"
+                class="w-8 h-8 transition-all duration-300"
+                id="navbar-logo"
+                style="filter: brightness(0) invert(0);"
               />
             </a>
           </div>
@@ -433,7 +435,9 @@
               <img
                 src="./img/favicon.ico"
                 alt="OpServer"
-                class="w-8 h-8 filter brightness-0 invert"
+                class="w-8 h-8 transition-all duration-300"
+                id="mobile-navbar-logo"
+                style="filter: brightness(0) invert(0);"
               />
             </a>
             <button
@@ -762,5 +766,54 @@
 
     <!-- Scroll Effects System -->
     <script type="module" src="./src/scroll-effects-minimal.js"></script>
+    
+    <!-- Theme Switcher -->
+    <script type="module" src="./src/theme-switcher.js"></script>
+    
+    <!-- Backup Theme Button -->
+    <script>
+      // Ensure theme button exists
+      setTimeout(() => {
+        if (!document.getElementById('theme-toggle')) {
+          const btn = document.createElement('button');
+          btn.id = 'theme-toggle';
+          btn.innerHTML = '☀️';
+          btn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            cursor: pointer;
+            z-index: 999;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `;
+          document.body.appendChild(btn);
+          
+          btn.addEventListener('click', () => {
+            const theme = localStorage.getItem('opserver-theme') || 'dark';
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('opserver-theme', newTheme);
+            
+            if (newTheme === 'light') {
+              document.body.style.background = '#ffffff';
+              document.body.style.color = '#000000';
+              btn.innerHTML = '🌙';
+            } else {
+              document.body.style.background = '#000000';
+              document.body.style.color = '#ffffff';
+              btn.innerHTML = '☀️';
+            }
+          });
+        }
+      }, 500);
+    </script>
 </body>
 </html>

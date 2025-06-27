@@ -1,7 +1,5 @@
-// Exact Blackbox.ai typewriter effect
 const createCursor = () => {
   const cursor = document.createElement('span');
-  // Styled span for a non-blinking dot cursor
   cursor.style.cssText = `
     display: inline-block;
     width: 10px;
@@ -10,7 +8,7 @@ const createCursor = () => {
     border-radius: 50%;
     margin-left: 4px;
     vertical-align: middle;
-    transform: translateY(-1px); /* Fine-tune vertical alignment */
+    transform: translateY(-1px);
   `;
   return cursor;
 };
@@ -29,21 +27,17 @@ const typewriterEffect = (element, text) => {
       element.insertBefore(textNode, cursor);
       charIndex++;
       
-      // Faster, more natural typing speed
       setTimeout(addChar, 60);
     } else {
-      // Remove cursor immediately after completion
       if (cursor.parentNode) {
         cursor.parentNode.removeChild(cursor);
       }
     }
   };
   
-  // Start immediately
   addChar();
 };
 
-// Initialize the effect
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-typewriter]').forEach(element => {
     const text = element.textContent.trim();

@@ -174,10 +174,12 @@
     </style>
   </head>
   <body
-    class="bg-black text-white antialiased h-screen overflow-hidden selection:bg-white selection:text-black flex flex-col"
+    class="bg-black text-white antialiased h-screen overflow-hidden selection:bg-white selection:text-black flex flex-col transition-all duration-300"
+    id="main-body"
   >    <!-- Navigation -->
     <nav
-      class="fixed top-0 w-full z-50 backdrop-blur-xl bg-black/95"
+      class="fixed top-0 w-full z-50 backdrop-blur-xl bg-black/95 transition-all duration-300"
+      id="main-navbar"
     >
       <div class="w-full px-6 py-4">
         <div class="relative flex items-center justify-between">
@@ -192,7 +194,9 @@
               <img
                 src="./img/favicon.ico"
                 alt="OpServer"
-                class="w-8 h-8 filter brightness-0 invert"
+                class="w-8 h-8 transition-all duration-300"
+                id="navbar-logo"
+                style="filter: brightness(0) invert(0);"
               />
             </a>
           </div>
@@ -297,7 +301,8 @@
           <div class="pt-8">
             <a
               href="servers.html"
-              class="inline-flex items-center px-8 py-3 bg-white text-black text-sm font-medium hover:bg-white/90 transition-colors duration-200"
+              class="inline-flex items-center px-8 py-3 bg-white text-black text-sm font-medium hover:bg-white/90 transition-all duration-300 cta-button"
+              id="jogar-button"
             >
               JOGAR
             </a>
@@ -560,11 +565,98 @@
       });
     </script>      <!-- Importar o sistema mínimo de efeitos de scroll (apenas para OPSERVER e Um Grande Caos) -->
     <script type="module" src="./src/scroll-effects-minimal.js"></script>
+    
+    <!-- Theme Switcher -->
+    <script type="module" src="./src/theme-switcher.js"></script>
 
     <!-- Main Page Script -->
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Main page initialized successfully');
+        
+        // Function to apply theme immediately to critical elements
+        function applyThemeToElements(isLight) {
+          const bgPrimary = isLight ? '#ffffff' : '#000000';
+          const primaryText = isLight ? '#000000' : '#ffffff';
+          const navBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)';
+          
+          // Update body immediately
+          document.body.style.background = bgPrimary;
+          document.body.style.color = primaryText;
+          
+          // Update JOGAR button
+          const jogarButton = document.getElementById('jogar-button');
+          if (jogarButton) {
+            jogarButton.style.background = isLight ? '#000000' : '#ffffff';
+            jogarButton.style.color = isLight ? '#ffffff' : '#000000';
+          }
+          
+          // Update navbar logo
+          const navbarLogo = document.getElementById('navbar-logo');
+          if (navbarLogo) {
+            navbarLogo.style.filter = isLight ? 'brightness(0) invert(1)' : 'brightness(0) invert(0)';
+          }
+          
+          // Update navbar
+          const navbar = document.getElementById('main-navbar');
+          if (navbar) {
+            navbar.style.background = navBg;
+          }
+        }
+        
+        // Check if theme is already set and apply immediately
+        const savedTheme = localStorage.getItem('opserver-theme') || 'dark';
+        if (savedTheme === 'light') {
+          applyThemeToElements(true);
+        }
+        
+        // Backup theme button creation (if module fails)
+        setTimeout(() => {
+          if (!document.getElementById('theme-toggle')) {
+            console.log('🔧 Creating backup theme button...');
+            const btn = document.createElement('button');
+            btn.id = 'theme-toggle';
+            btn.innerHTML = savedTheme === 'light' ? '🌙' : '☀️';
+            btn.style.cssText = `
+              position: fixed;
+              bottom: 24px;
+              left: 24px;
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              background: ${savedTheme === 'light' ? 'rgba(248, 250, 252, 0.95)' : 'rgba(17, 17, 17, 0.95)'};
+              backdrop-filter: blur(12px);
+              color: ${savedTheme === 'light' ? '#1f2937' : '#ffffff'};
+              cursor: pointer;
+              z-index: 9999;
+              font-size: 16px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            `;
+            document.body.appendChild(btn);
+            
+            btn.addEventListener('click', () => {
+              const theme = localStorage.getItem('opserver-theme') || 'dark';
+              const newTheme = theme === 'dark' ? 'light' : 'dark';
+              localStorage.setItem('opserver-theme', newTheme);
+              const isLight = newTheme === 'light';
+              
+              // Update button
+              btn.innerHTML = isLight ? '🌙' : '☀️';
+              btn.style.background = isLight ? 'rgba(248, 250, 252, 0.95)' : 'rgba(17, 17, 17, 0.95)';
+              btn.style.color = isLight ? '#1f2937' : '#ffffff';
+              
+              // Apply theme to elements
+              applyThemeToElements(isLight);
+            });
+            
+            console.log('✅ Backup theme button created');
+          }
+        }, 1000);
       });
     </script>
   </body>

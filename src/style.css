@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Custom Scrollbar Styles - Transparent/Minimal */
+/* Custom Scrollbar Styles - Responsive to theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -19,8 +19,20 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 /* For Firefox */
 html {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+[data-theme="light"] html {
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
 }

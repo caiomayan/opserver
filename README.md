@@ -7,7 +7,6 @@ Uma plataforma profissional para servidores Counter-Strike 2 com sistema de skin
 - Monitoramento em tempo real de servidores CS2
 - Sistema de inventário de skins gratuitas integrado
 - Interface moderna e responsiva
-- Cache inteligente para otimização de performance
 
 ## Tecnologias
 
@@ -37,7 +36,6 @@ npm run build
 ├── src/
 │   ├── style.css
 │   ├── cs2-server-status-final.js
-│   ├── server-cache.js
 │   └── scroll-effects-minimal.js
 ├── public/img/
 ├── main.html
@@ -47,5 +45,3 @@ npm run build
 ```
 
 ## Deploy
-
-Build estático pronto para qualquer servidor web. Execute `npm run build` e hospede a pasta `dist/`.
