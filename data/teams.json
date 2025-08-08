@@ -4,5 +4,17 @@
     "name": "OPIUM", 
     "logo": "/teams/opium.svg",
     "country": "BR"
+  },
+  {
+    "id": "1",
+    "name": "FURIA", 
+    "logo": "/teams/furia.svg",
+    "country": "BR"
+  },  
+  {
+    "id": "2",
+    "name": "Natus Vincere", 
+    "logo": "/teams/navi.png",
+    "country": "EU"
   }
 ]

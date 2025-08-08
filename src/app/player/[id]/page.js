@@ -2,7 +2,7 @@ import Link from 'next/link';
 import ReactCountryFlag from "react-country-flag";
 
 export default async function PlayerPage({ params }) {
-  const { slug } = await params;
+  const { id } = await params;
   
   // Buscar dados do jogador e do time
   let playerData = null;
@@ -16,7 +16,7 @@ export default async function PlayerPage({ params }) {
     
     if (playersRes.ok) {
       const players = await playersRes.json();
-      playerData = players.find(player => player.name.toLowerCase() === slug.toLowerCase());
+      playerData = players.find(player => player.id === id);
       
       // Buscar dados do time se o jogador tiver teamId
       if (playerData?.teamId && teamsRes?.ok) {
@@ -32,17 +32,18 @@ export default async function PlayerPage({ params }) {
   if (!playerData) {
     return (
       <div className="min-h-screen bg-white text-black flex flex-col relative">
-        <header className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30">
-          <Link href="/">
-            <img src="/logo.svg" alt="OPIUM Logo" className="mx-auto" width="40" height="40" />
+        <header className="absolute top-4 left-4 z-30">
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.svg" alt="OPIUM Logo" width="32" height="32" />
+            <span className="text-lg font-semibold text-gray-800">OPSERVER</span>
           </Link>
         </header>
         
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <h1 className="text-2xl font-semibold text-gray-800 mb-4">Jogador não encontrado</h1>
-            <Link href="/" className="text-gray-600 hover:text-gray-800 transition-colors">
-              ← Voltar
+            <Link href="/teams" className="text-gray-600 hover:text-gray-800 transition-colors">
+              ← Voltar para Teams
             </Link>
           </div>
         </div>
@@ -79,11 +80,34 @@ export default async function PlayerPage({ params }) {
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col relative">
-      {/* Header */}
-      <header className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30">
-        <Link href="/">
-          <img src="/logo.svg" alt="OPIUM Logo" className="mx-auto" width="40" height="40" />
+      {/* Header - Logo Principal */}
+      <div className="absolute top-4 left-4 z-30">
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/logo.svg" alt="OPIUM Logo" width="24" height="24" />
+          <span className="text-sm font-semibold text-gray-800">OPSERVER</span>
         </Link>
+      </div>
+
+      {/* Team Logo - Centro */}
+      <header className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 text-center">
+        <Link href={teamData ? `/team/${teamData.id}` : "/teams"}>
+          {teamData?.logo ? (
+            <img 
+              src={teamData.logo} 
+              alt={`${teamData.name} Logo`}
+              className="mx-auto object-contain" 
+              width="40" 
+              height="40" 
+            />
+          ) : (
+            <img src="/logo.svg" alt="Logo" className="mx-auto" width="40" height="40" />
+          )}
+        </Link>
+        {teamData && (
+          <div className="mt-1">
+            <ReactCountryFlag countryCode={teamData.country} svg style={{width: '0.8em', height: '0.8em'}} />
+          </div>
+        )}
       </header>
       
       <div className="flex-1 flex items-center justify-center p-4">
@@ -109,19 +133,14 @@ export default async function PlayerPage({ params }) {
               <ReactCountryFlag countryCode={playerData.country} svg style={{width: '1.5em', height: '1.5em'}} />
             </div>
             
-            {teamData && (
-              <p className="text-sm text-gray-600 mb-4">{teamData.name}</p>
-            )}
-            
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-4 mb-8">
               <a 
                 href={`https://steamcommunity.com/profiles/${playerData.steamid64}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
-                <span className="text-sm text-gray-700">Steam</span>
               </a>
               
               {playerData.level && playerData.level !== 'Indisponível' && playerData.level !== '?' && typeof playerData.level === 'number' && (
@@ -129,10 +148,9 @@ export default async function PlayerPage({ params }) {
                   href={`https://gamersclub.com.br/player/${playerData.gamersclubid}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   <img src="/platforms/gamersclub.svg" alt="GamersClub" className="w-4 h-4" />
-                  <span className="text-sm text-gray-700">GamersClub</span>
                 </a>
               )}
             </div>
@@ -193,7 +211,7 @@ export default async function PlayerPage({ params }) {
       
       {/* Rodapé */}
       <footer className="fixed bottom-0 left-0 right-0 text-center py-2">
-        <p className="text-xs text-gray-400">Development</p>
+        <p className="text-xs text-gray-400">{teamData ? teamData.name.toUpperCase() : 'Development'}</p>
       </footer>
     </div>
   );

@@ -5,324 +5,343 @@ import Link from 'next/link';
 
 export default function AdminPage() {
   const [players, setPlayers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingPlayer, setEditingPlayer] = useState(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    gamersclub: '',
+  const [teams, setTeams] = useState([]);
+  const [activeTab, setActiveTab] = useState('players');
+  const [loading, setLoading] = useState(true);
+  
+  // Form states
+  const [playerForm, setPlayerForm] = useState({
+    name: '',
+    country: '',
+    birthday: '',
     steamid64: '',
-    config: { sensibilidade: '', dpi: '' }
+    gamersclubid: '',
+    teamId: '0',
+    sensitivity: '',
+    dpi: ''
   });
 
-  // Template simplificado
-  const getEmptyFormData = () => ({
-    nome: '',
-    gamersclub: '',
-    steamid64: '',
-    config: { sensibilidade: '', dpi: '' }
+  const [teamForm, setTeamForm] = useState({
+    id: '',
+    name: '',
+    country: '',
+    logo: ''
   });
-
-  // Converter valores null mantendo apenas campos do template
-  const convertNullToString = (obj, template) => {
-    const result = { ...template };
-    for (const key of Object.keys(template)) {
-      const val = obj?.[key];
-      if (val === null || val === undefined) {
-        if (typeof template[key] === 'object' && template[key] !== null) {
-          result[key] = convertNullToString({}, template[key]);
-        } else {
-          result[key] = '';
-        }
-      } else if (typeof val === 'object' && val !== null && typeof template[key] === 'object') {
-        result[key] = convertNullToString(val, template[key]);
-      } else {
-        result[key] = val;
-      }
-    }
-    return result;
-  };
 
   useEffect(() => {
-    fetchPlayers();
+    fetchData();
   }, []);
 
-  const fetchPlayers = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch('/api/admin');
-      if (response.ok) {
-        const data = await response.json();
-        setPlayers(data.players || []);
-      }
+      const [playersRes, teamsRes] = await Promise.all([
+        fetch('/api/players'),
+        fetch('/api/teams')
+      ]);
+      
+      if (playersRes.ok) setPlayers(await playersRes.json());
+      if (teamsRes.ok) setTeams(await teamsRes.json());
     } catch (error) {
-      console.error('Erro ao carregar jogadores:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Erro ao buscar dados:', error);
     }
+    setLoading(false);
   };
 
-  const handleInputChange = (section, field, value) => {
-    if (section) {
-      setFormData(prev => ({
-        ...prev,
-        [section]: { ...prev[section], [field]: value }
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  const handlePlayerSubmit = async (e) => {
     e.preventDefault();
+    // Simular adição (em produção seria uma API POST)
+    console.log('Novo jogador:', playerForm);
     
-    try {
-      const response = await fetch('/api/admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: editingPlayer ? 'update' : 'create',
-          player: formData,
-          originalName: editingPlayer
-        }),
-      });
-
-      if (response.ok) {
-        await fetchPlayers();
-        setShowForm(false);
-        setEditingPlayer(null);
-        setFormData(getEmptyFormData());
-      } else {
-        alert('Erro ao salvar jogador');
-      }
-    } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro ao salvar jogador');
-    }
+    // Reset form
+    setPlayerForm({
+      name: '',
+      country: '',
+      birthday: '',
+      steamid64: '',
+      gamersclubid: '',
+      teamId: '0',
+      sensitivity: '',
+      dpi: ''
+    });
   };
 
-  const editPlayer = (player) => {
-    setEditingPlayer(player.nome);
-    const template = getEmptyFormData();
-    const convertedPlayer = convertNullToString(player, template);
-    setFormData(convertedPlayer);
-    setShowForm(true);
+  const handleTeamSubmit = async (e) => {
+    e.preventDefault();
+    // Simular adição (em produção seria uma API POST)
+    console.log('Novo time:', teamForm);
+    
+    // Reset form
+    setTeamForm({
+      id: '',
+      name: '',
+      country: '',
+      logo: ''
+    });
   };
 
-  const deletePlayer = async (nome) => {
-    if (confirm(`Tem certeza que deseja deletar ${nome}?`)) {
-      try {
-        const response = await fetch('/api/admin', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ nome }),
-        });
-
-        if (response.ok) {
-          await fetchPlayers();
-        } else {
-          alert('Erro ao deletar jogador');
-        }
-      } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro ao deletar jogador');
-      }
-    }
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-xl text-white">⚡ Carregando...</div>
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
+        <p className="text-gray-500">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-white text-black p-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2">⚙️ Admin Panel</h1>
-            <p className="text-gray-400">Gerencie jogadores e configurações</p>
+        <div className="mb-8">
+          <div className="absolute top-4 left-4 z-30">
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.svg" alt="OPIUM Logo" width="24" height="24" />
+              <span className="text-sm font-semibold text-gray-800">OPSERVER</span>
+            </Link>
           </div>
-          <Link 
-            href="/"
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg"
-          >
-            ← Voltar ao Início
-          </Link>
-        </div>
-
-        {/* Main Content */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700/50 p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-white">🎮 Jogadores Cadastrados</h2>
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105"
-            >
-              + Adicionar Jogador
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto rounded-xl">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-700/50">
-                  <th className="text-left py-4 px-6 font-semibold text-gray-300">Nome</th>
-                  <th className="text-left py-4 px-6 font-semibold text-gray-300">GamersClub</th>
-                  <th className="text-left py-4 px-6 font-semibold text-gray-300">Steam ID</th>
-                  <th className="text-left py-4 px-6 font-semibold text-gray-300">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {players.map((player, index) => (
-                  <tr key={index} className="border-t border-gray-700/30 hover:bg-gray-700/30 transition-colors">
-                    <td className="py-4 px-6 text-white font-medium">{player.nome}</td>
-                    <td className="py-4 px-6 text-gray-300">{player.gamersclub}</td>
-                    <td className="py-4 px-6 text-gray-300 font-mono text-sm">{player.steamid64}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => editPlayer(player)}
-                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded-lg transition-colors shadow-md"
-                        >
-                          ✏️ Editar
-                        </button>
-                        <button
-                          onClick={() => deletePlayer(player.nome)}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm rounded-lg transition-colors shadow-md"
-                        >
-                          🗑️ Deletar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="pt-16">
+            <h1 className="text-3xl font-semibold text-gray-800">Admin Panel</h1>
+            <p className="text-gray-600">Manage players and teams</p>
           </div>
         </div>
 
-        {/* Modal Form */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-gray-700 shadow-2xl">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-white">
-                    {editingPlayer ? '✏️ Editar Jogador' : '➕ Adicionar Jogador'}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingPlayer(null);
-                    }}
-                    className="text-white/80 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-all"
-                  >
-                    ×
-                  </button>
+        {/* Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('players')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'players'
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Players ({players.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('teams')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'teams'
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Teams ({teams.length})
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Players Tab */}
+        {activeTab === 'players' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Add Player Form */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Player</h2>
+              <form onSubmit={handlePlayerSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={playerForm.name}
+                    onChange={(e) => setPlayerForm({...playerForm, name: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    required
+                  />
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input
+                      type="text"
+                      value={playerForm.country}
+                      onChange={(e) => setPlayerForm({...playerForm, country: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      placeholder="BR"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Birthday</label>
+                    <input
+                      type="text"
+                      value={playerForm.birthday}
+                      onChange={(e) => setPlayerForm({...playerForm, birthday: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      placeholder="MM-DD-YYYY"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Steam ID64</label>
+                  <input
+                    type="text"
+                    value={playerForm.steamid64}
+                    onChange={(e) => setPlayerForm({...playerForm, steamid64: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">GamersClub ID</label>
+                  <input
+                    type="text"
+                    value={playerForm.gamersclubid}
+                    onChange={(e) => setPlayerForm({...playerForm, gamersclubid: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Team</label>
+                  <select
+                    value={playerForm.teamId}
+                    onChange={(e) => setPlayerForm({...playerForm, teamId: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                  >
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>{team.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Sensitivity</label>
+                    <input
+                      type="text"
+                      value={playerForm.sensitivity}
+                      onChange={(e) => setPlayerForm({...playerForm, sensitivity: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">DPI</label>
+                    <input
+                      type="text"
+                      value={playerForm.dpi}
+                      onChange={(e) => setPlayerForm({...playerForm, dpi: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
+                >
+                  Add Player
+                </button>
+              </form>
+            </div>
+
+            {/* Players List */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Current Players</h2>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {players.map((player) => (
+                  <div key={player.steamid64} className="bg-white p-3 rounded-md border border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-800">{player.name}</p>
+                        <p className="text-sm text-gray-600">{player.country} • {player.settings?.sensitivity}/{player.settings?.dpi}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Team: {teams.find(t => t.id === player.teamId)?.name || 'Unknown'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </div>
+          </div>
+        )}
 
-              {/* Form Content */}
-              <div className="max-h-[calc(90vh-80px)] overflow-y-auto">
-                <form onSubmit={handleSubmit} className="p-6 space-y-8">
-                  {/* Informações Básicas */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                      👤 Informações Básicas
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Teams Tab */}
+        {activeTab === 'teams' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Add Team Form */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Team</h2>
+              <form onSubmit={handleTeamSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Team ID</label>
+                  <input
+                    type="text"
+                    value={teamForm.id}
+                    onChange={(e) => setTeamForm({...teamForm, id: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={teamForm.name}
+                    onChange={(e) => setTeamForm({...teamForm, name: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <input
+                    type="text"
+                    value={teamForm.country}
+                    onChange={(e) => setTeamForm({...teamForm, country: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    placeholder="BR"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Logo Path</label>
+                  <input
+                    type="text"
+                    value={teamForm.logo}
+                    onChange={(e) => setTeamForm({...teamForm, logo: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    placeholder="/teams/team-logo.svg"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
+                >
+                  Add Team
+                </button>
+              </form>
+            </div>
+
+            {/* Teams List */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Current Teams</h2>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {teams.map((team) => (
+                  <div key={team.id} className="bg-white p-3 rounded-md border border-gray-200">
+                    <div className="flex justify-between items-center">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Nome</label>
-                        <input
-                          type="text"
-                          value={formData.nome || ''}
-                          onChange={(e) => handleInputChange(null, 'nome', e.target.value)}
-                          className="w-full p-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                          required
-                          placeholder="Nome do jogador"
-                        />
+                        <p className="font-medium text-gray-800">{team.name}</p>
+                        <p className="text-sm text-gray-600">{team.country} • ID: {team.id}</p>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">GamersClub</label>
-                        <input
-                          type="text"
-                          value={formData.gamersclub || ''}
-                          onChange={(e) => handleInputChange(null, 'gamersclub', e.target.value)}
-                          className="w-full p-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                          required
-                          placeholder="Username GamersClub"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Steam ID64</label>
-                        <input
-                          type="text"
-                          value={formData.steamid64 || ''}
-                          onChange={(e) => handleInputChange(null, 'steamid64', e.target.value)}
-                          className="w-full p-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
-                          required
-                          placeholder="Steam ID64"
-                        />
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Players: {players.filter(p => p.teamId === team.id).length}</p>
                       </div>
                     </div>
                   </div>
-
-                  {/* Configurações */}
-                  <div className="space-y-4 border-t border-gray-700 pt-6">
-                    <h4 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                      🎯 Configurações
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Sensibilidade</label>
-                        <input
-                          type="text"
-                          value={formData.config.sensibilidade || ''}
-                          onChange={(e) => handleInputChange('config', 'sensibilidade', e.target.value)}
-                          className="w-full p-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                          placeholder="2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">DPI</label>
-                        <input
-                          type="text"
-                          value={formData.config.dpi || ''}
-                          onChange={(e) => handleInputChange('config', 'dpi', e.target.value)}
-                          className="w-full p-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                          placeholder="800"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Botões */}
-                  <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700">
-                    <button
-                      type="button"
-                      onClick={() => { setShowForm(false); setEditingPlayer(null); }}
-                      className="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-xl transition-colors shadow-lg"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105"
-                    >
-                      {editingPlayer ? 'Atualizar' : 'Salvar'}
-                    </button>
-                  </div>
-                </form>
+                ))}
               </div>
             </div>
           </div>
