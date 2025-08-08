@@ -5,7 +5,10 @@ export async function GET() {
   const getPlayerLevel = async (playerId) => {
     try {
       const GC = require('gamersclub-api');
-      const gc = new GC("19388b46b2d7061bdbaa8acefc5641c94585ab0b", "https://gamersclub.com.br/");
+      const gc = new GC(
+        process.env.GAMERSCLUB_API_KEY,
+        process.env.GAMERSCLUB_BASE_URL
+      );
       await gc.initBrowser();
       
       const level = await new Promise((resolve) => {
@@ -30,7 +33,9 @@ export async function GET() {
 
   const getSteamAvatar = async (steamid64) => {
     try {
-      const response = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=1270A62C1573C745CB26B8526242F0BD&steamids=${steamid64}`);
+      const response = await fetch(
+        `${process.env.STEAM_API_URL}/?key=${process.env.STEAM_API_KEY}&steamids=${steamid64}`
+      );
       const data = await response.json();
       return data.response.players[0]?.avatarfull || null;
     } catch (error) {

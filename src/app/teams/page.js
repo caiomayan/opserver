@@ -5,7 +5,8 @@ export default async function TeamsPage() {
   let teams = [];
 
   try {
-    const res = await fetch('http://localhost:3000/api/teams', {cache: 'no-store'});
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/teams`, {cache: 'no-store'});
     teams = res.ok ? await res.json() : [];
   } catch (error) {
     console.log('Erro ao buscar dados dos times:', error.message);

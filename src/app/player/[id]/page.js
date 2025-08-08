@@ -9,9 +9,10 @@ export default async function PlayerPage({ params }) {
   let teamData = null;
   
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const [playersRes, teamsRes] = await Promise.all([
-      fetch('http://localhost:3000/api/players', {cache: 'no-store'}),
-      fetch('http://localhost:3000/api/teams', {cache: 'no-store'}).catch(() => null)
+      fetch(`${baseUrl}/api/players`, {cache: 'no-store'}),
+      fetch(`${baseUrl}/api/teams`, {cache: 'no-store'}).catch(() => null)
     ]);
     
     if (playersRes.ok) {

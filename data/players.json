@@ -39,19 +39,6 @@
     }
   },
   {
-    "id": "4",
-    "name": "testecommerdapintocu",
-    "teamId": "0",
-    "country": "FJ",
-    "birthday": "07-25-1945",
-    "steamid64": "765642343252",
-    "gamersclubid": "42342342",
-    "settings": {
-      "sensitivity": "1.1",
-      "dpi": "800"
-    }
-  },
-  {
     "id": "5",
     "name": "astro",
     "teamId": "0",
