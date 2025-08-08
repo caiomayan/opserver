@@ -1,0 +1,50 @@
+[
+  {
+    "name": "tensai",
+    "teamId": "0",
+    "country": "BR",
+    "birthday": "07-28-2005",
+    "steamid64": "76561199095180322",
+    "gamersclubid": "1635730",
+    "settings": {
+      "sensitivity": "1.25",
+      "dpi": "800"
+    }
+  },
+  {
+    "name": "henry",
+    "teamId": "0",
+    "country": "BR",
+    "birthday": "09-29-2005",
+    "steamid64": "76561199504332272",
+    "gamersclubid": "2319357",
+    "settings": {
+      "sensitivity": "1.35",
+      "dpi": "800"
+    }
+  },
+  {
+    "name": "renan",
+    "teamId": "0",
+    "country": "BR",
+    "birthday": "07-25-2006",
+    "steamid64": "76561199094258177",
+    "gamersclubid": "1808995",
+    "settings": {
+      "sensitivity": "1.1",
+      "dpi": "800"
+    }
+  },
+  {
+    "name": "testecommerdapintocu",
+    "teamId": "0",
+    "country": "FJ",
+    "birthday": "07-25-1945",
+    "steamid64": "765642343252",
+    "gamersclubid": "42342342",
+    "settings": {
+      "sensitivity": "1.1",
+      "dpi": "800"
+    }
+  }
+]
