@@ -29,30 +29,6 @@ O foco está em transformar dados brutos em uma experiência visual atrativa, on
 - **Vercel** - Plataforma de deploy com integração GitHub
 - **Git & GitHub** - Controle de versão e CI/CD automático
 
-## ✨ Funcionalidades Principais
-
-### 🏆 **Sistema de Equipes**
-- Visualização de todas as equipes com logos e informações
-- Páginas individuais para cada equipe
-- Listagem automática dos membros com hover effects elegantes
-
-### 👤 **Perfis de Jogadores**
-- **Configurações detalhadas**: Sensibilidade, DPI, eDPI calculado
-- **Informações pessoais**: Idade, país, links para Steam/GamersClub  
-- **Integração Steam**: Avatars atualizados automaticamente
-- **Levels GamersClub**: Níveis atualizados via scraping
-
-### 🎨 **Design & UX**
-- Interface minimalista e profissional
-- Animações suaves e micro-interações
-- Design responsivo para todos os dispositivos
-- Efeitos hover avançados nos cards de jogadores
-
-### ⚙️ **Painel Administrativo**
-- Gerenciamento de jogadores e equipes
-- Formulários intuitivos para adição/edição
-- Validação de dados em tempo real
-
 ## 📁 Estrutura do Projeto
 
 ```
@@ -74,14 +50,3 @@ opserver/
     ├── teams/              # Logos das equipes
     └── platforms/          # Ícones Steam/GamersClub
 ```
-
-## 🎯 Futuras Implementações
-
-- [ ] Sistema de estatísticas avançadas
-- [ ] Integração com FACEIT API
-- [ ] Dashboard para organizações
-- [ ] Sistema de matches e resultados
-- [ ] Export de dados para redes sociais
-- [ ] Modo escuro/claro
-- [ ] Multilingual support
----

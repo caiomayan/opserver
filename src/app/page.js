@@ -81,9 +81,7 @@ export default function Home() {
                 className="group relative bg-white p-6 rounded-lg transition-all duration-200 border border-gray-200/60 hover:border-gray-300/80 hover:bg-gray-50/30"
               >
                 <div className="text-center">
-                  <div className="text-2xl mb-3 text-gray-700 group-hover:text-gray-900 transition-colors duration-200">🏆</div>
-                  <h2 className="text-base font-medium text-gray-900 mb-1">Teams</h2>
-                  <p className="text-gray-500 text-sm font-normal">Professional teams</p>
+                  <h2 className="text-base font-medium text-gray-900 uppercase tracking-wide">TEAMS</h2>
                 </div>
                 {/* Subtle bottom border accent */}
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gray-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
@@ -95,9 +93,7 @@ export default function Home() {
                 className="group relative bg-white p-6 rounded-lg transition-all duration-200 border border-gray-200/60 hover:border-gray-300/80 hover:bg-gray-50/30"
               >
                 <div className="text-center">
-                  <div className="text-2xl mb-3 text-gray-700 group-hover:text-gray-900 transition-colors duration-200">🎮</div>
-                  <h2 className="text-base font-medium text-gray-900 mb-1">Server</h2>
-                  <p className="text-gray-500 text-sm font-normal">CS2 Retake Server</p>
+                  <h2 className="text-base font-medium text-gray-900 uppercase tracking-wide">SERVER</h2>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </Link>
@@ -108,9 +104,7 @@ export default function Home() {
                 className="group relative bg-white p-6 rounded-lg transition-all duration-200 border border-gray-200/60 hover:border-gray-300/80 hover:bg-gray-50/30"
               >
                 <div className="text-center">
-                  <div className="text-2xl mb-3 text-gray-700 group-hover:text-gray-900 transition-colors duration-200">📊</div>
-                  <h2 className="text-base font-medium text-gray-900 mb-1">Stats</h2>
-                  <p className="text-gray-500 text-sm font-normal">Rankings and statistics</p>
+                  <h2 className="text-base font-medium text-gray-900 uppercase tracking-wide">STATS</h2>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-green-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </Link>
@@ -121,9 +115,7 @@ export default function Home() {
                 className="group relative bg-white p-6 rounded-lg transition-all duration-200 border border-gray-200/60 hover:border-gray-300/80 hover:bg-gray-50/30"
               >
                 <div className="text-center">
-                  <div className="text-2xl mb-3 text-gray-700 group-hover:text-gray-900 transition-colors duration-200">⚙️</div>
-                  <h2 className="text-base font-medium text-gray-900 mb-1">Admin</h2>
-                  <p className="text-gray-500 text-sm font-normal">Management panel</p>
+                  <h2 className="text-base font-medium text-gray-900 uppercase tracking-wide">ADMIN</h2>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-orange-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </Link>
