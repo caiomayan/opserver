@@ -6,18 +6,6 @@
 
 O **OPSERVER** nasceu da necessidade de ter uma plataforma centralizada onde jogadores e equipes de CS2 possam exibir suas informações de forma profissional. Mais do que apenas um site, é uma ferramenta que conecta dados do GamersClub e Steam para criar perfis completos e atualizados automaticamente.
 
-### 🎯 **Intenção Principal**
-
-Este projeto foi criado com o objetivo de:
-
-- **Profissionalizar a apresentação** de equipes amadoras e semi-profissionais
-- **Centralizar informações** que normalmente ficam espalhadas em diferentes plataformas
-- **Automatizar a coleta de dados** através de APIs para manter tudo sempre atualizado
-- **Criar uma identidade visual limpa** que reflita seriedade e profissionalismo
-- **Facilitar o networking** entre jogadores e organizações do cenário
-
-O foco está em transformar dados brutos em uma experiência visual atrativa, onde cada jogador tem seu perfil completo com configurações, estatísticas e informações pessoais organizadas de forma intuitiva.
-
 ## 🛠️ Tecnologias Utilizadas
 
 ### **Frontend & Framework**
