@@ -1,15 +1,14 @@
-import fs from 'fs';
-import path from 'path';
 
+import { createClient } from '@supabase/supabase-js';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'data', 'teams.json');
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const teams = JSON.parse(fileContents);
-    
-    return Response.json(teams);
+    const { data, error } = await supabase.from('teams').select('*');
+    if (error) return Response.json([], { status: 500 });
+    return Response.json(data);
   } catch (error) {
-    console.error('Erro ao ler teams.json:', error);
     return Response.json([], { status: 500 });
   }
 }

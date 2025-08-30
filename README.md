@@ -4,7 +4,7 @@
 
 ## 🚀 Sobre o Projeto
 
-O **OPSERVER** nasceu da necessidade de ter uma plataforma centralizada onde jogadores e equipes de CS2 possam exibir suas informações de forma profissional. Mais do que apenas um site, é uma ferramenta que conecta dados do GamersClub e Steam para criar perfis completos e atualizados automaticamente.
+O **OPSERVER** nasceu da necessidade de ter uma plataforma centralizada onde jogadores e equipes de CS2 possam exibir suas informações de forma profissional. Mais do que apenas um site, é uma ferramenta que conecta dados do Steam para criar perfis completos e atualizados automaticamente.
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -36,5 +36,5 @@ opserver/
 │   └── teams.json          # Banco de dados das equipes
 └── public/
     ├── teams/              # Logos das equipes
-    └── platforms/          # Ícones Steam/GamersClub
+    └── platforms/          # Ícones Steam
 ```

@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Apenas para o LoadingScreen */
+.loading-fade {
+  animation: loadingFadeIn 0.2s ease-out;
+}
+
+@keyframes loadingFadeIn {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 1;
+  }
+}

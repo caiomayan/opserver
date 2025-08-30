@@ -1,45 +1,88 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 import Link from 'next/link';
 import ReactCountryFlag from "react-country-flag";
+import Layout from '../../../components/Layout';
+import LoadingScreen from '../../../components/LoadingScreen';
+import { calculateAge, calculateEDPI, getProfileUrls, isValidLevel } from '../../../utils/playerUtils';
+import { getRoleIcon, getRoleName } from '../../../utils/playerRoles';
 
-export default async function PlayerPage({ params }) {
-  const { id } = await params;
-  
-  // Buscar dados do jogador e do time
-  let playerData = null;
-  let teamData = null;
-  
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const [playersRes, teamsRes] = await Promise.all([
-      fetch(`${baseUrl}/api/players`, {cache: 'no-store'}),
-      fetch(`${baseUrl}/api/teams`, {cache: 'no-store'}).catch(() => null)
-    ]);
+export default function PlayerPage({ params }) {
+  const [playerData, setPlayerData] = useState(null);
+  const [teamData, setTeamData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [playerId, setPlayerId] = useState(null);
+  const { user } = useAuth();
+  const isAdmin = user?.user_metadata?.role === 'admin';
+
+  // Primeiro useEffect para extrair o ID dos params
+  useEffect(() => {
+    const getPlayerId = async () => {
+      const { id } = await params;
+      setPlayerId(id);
+    };
     
-    if (playersRes.ok) {
-      const players = await playersRes.json();
-      playerData = players.find(player => player.id === id);
-      
-      // Buscar dados do time se o jogador tiver teamId
-      if (playerData?.teamId && teamsRes?.ok) {
-        const teams = await teamsRes.json();
-        teamData = teams.find(team => team.id === playerData.teamId);
+    getPlayerId();
+  }, [params]);
+
+  // Segundo useEffect para buscar dados quando temos o playerId
+  useEffect(() => {
+    if (!playerId) return; // Só executa quando temos o playerId
+    
+    const fetchPlayerData = async () => {
+      try {
+        setLoading(true);
+        
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const [teamsRes] = await Promise.all([
+          fetch(`${baseUrl}/api/teams`, {cache: 'no-store'}).catch(() => null)
+        ]);
+        
+        // 🎯 OTIMIZAÇÃO: Buscar apenas o jogador específico
+        const playersRes = await fetch(`${baseUrl}/api/players?playerIds=${playerId}`, {cache: 'no-store'});
+        
+        if (playersRes.ok) {
+          const players = await playersRes.json();
+          const player = players.find(player => player.steamid64 === playerId);
+          setPlayerData(player);
+          
+          // Buscar dados do time se o jogador tiver teamid
+          if (player?.teamid && teamsRes?.ok) {
+            const teams = await teamsRes.json();
+            const team = teams.find(team => team.id === player.teamid);
+            setTeamData(team);
+          }
+        } else {
+          throw new Error('Erro ao carregar jogador');
+        }
+      } catch (error) {
+  setError(error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
-    }
-  } catch (error) {
-    console.log('Erro ao buscar dados:', error.message);
+    };
+
+    fetchPlayerData();
+  }, [playerId]); // Agora depende apenas do playerId (string estática)
+
+  // Loading state
+  if (loading) {
+    return (
+      <LoadingScreen 
+        message="Carregando jogador..."
+        subMessage="Buscando informações do player"
+      />
+    );
   }
 
   // Se não encontrar o jogador
   if (!playerData) {
     return (
-      <div className="min-h-screen bg-white text-black flex flex-col relative">
-        <header className="absolute top-4 left-4 z-30">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="OPIUM Logo" width="32" height="32" />
-            <span className="text-lg font-semibold text-gray-800">OPSERVER</span>
-          </Link>
-        </header>
-        
+      <Layout>
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <h1 className="text-2xl font-semibold text-gray-800 mb-4">Jogador não encontrado</h1>
@@ -48,73 +91,30 @@ export default async function PlayerPage({ params }) {
             </Link>
           </div>
         </div>
-        
-        <footer className="fixed bottom-0 left-0 right-0 text-center py-2">
-          <p className="text-xs text-gray-400">Development</p>
-        </footer>
-      </div>
+      </Layout>
     );
   }
 
-  // Calcular eDPI
-  const edpi = (parseFloat(playerData.settings.sensitivity) * parseInt(playerData.settings.dpi)).toFixed(0);
-
-  // Calcular idade baseada no aniversário
-  const calculateAge = (birthday) => {
-    if (!birthday) return null;
-    
-    const [month, day, year] = birthday.split('-');
-    const birthDate = new Date(year, month - 1, day);
-    const today = new Date();
-    
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-
+  // Usar utilitários para cálculos
+  const edpi = calculateEDPI(playerData.settings.sensitivity, playerData.settings.dpi);
   const age = calculateAge(playerData.birthday);
+  const profileUrls = getProfileUrls(playerData.steamid64);
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col relative">
-      {/* Header - Logo Principal */}
-      <div className="absolute top-4 left-4 z-30">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.svg" alt="OPIUM Logo" width="24" height="24" />
-          <span className="text-sm font-semibold text-gray-800">OPSERVER</span>
-        </Link>
-      </div>
-
-      {/* Team Logo - Centro */}
-      <header className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 text-center">
-        <Link href={teamData ? `/team/${teamData.id}` : "/teams"}>
-          {teamData?.logo ? (
-            <img 
-              src={teamData.logo} 
-              alt={`${teamData.name} Logo`}
-              className="mx-auto object-contain" 
-              width="40" 
-              height="40" 
-            />
-          ) : (
-            <img src="/logo.svg" alt="Logo" className="mx-auto" width="40" height="40" />
-          )}
-        </Link>
-        {teamData && (
-          <div className="mt-1">
-            <ReactCountryFlag countryCode={teamData.country} svg style={{width: '0.8em', height: '0.8em'}} />
-          </div>
-        )}
-      </header>
-      
+    <Layout 
+      headerProps={{
+        centerLogo: {
+          src: teamData?.logo || "/teams/unknown.svg",
+          alt: teamData?.name ? `${teamData.name} Logo` : "Team Logo",
+          href: teamData ? `/team/${teamData.id}` : "/teams"
+        },
+        centerCountry: teamData?.country || null
+      }}
+    >
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full">
-          {/* Avatar e informações principais */}
-          <div className="text-center mb-8">
+        {/* Avatar e informações principais */}
+        <div className="text-center mb-8">
             <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden shadow-lg mx-auto mb-4">
               {playerData.avatar ? (
                 <img 
@@ -128,36 +128,41 @@ export default async function PlayerPage({ params }) {
                 </div>
               )}
             </div>
-            
             <div className="flex items-center justify-center gap-2 mb-2">
               <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
               <ReactCountryFlag countryCode={playerData.country} svg style={{width: '1.5em', height: '1.5em'}} />
             </div>
-            
+            {/* Ícone da role */}
+            <div className="flex justify-center mb-4">
+              <img 
+                src={getRoleIcon(playerData.idrole)} 
+                title={getRoleName(playerData.idrole)}
+                alt="Player Role"
+                className="w-6 h-6"
+              />
+            </div>
             <div className="flex items-center justify-center gap-4 mb-8">
-              <a 
-                href={`https://steamcommunity.com/profiles/${playerData.steamid64}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
-              </a>
-              
-              {playerData.level && playerData.level !== 'Indisponível' && playerData.level !== '?' && typeof playerData.level === 'number' && (
+              {profileUrls.steam && (
                 <a 
-                  href={`https://gamersclub.com.br/player/${playerData.gamersclubid}`}
+                  href={profileUrls.steam}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
-                  <img src="/platforms/gamersclub.svg" alt="GamersClub" className="w-4 h-4" />
+                  <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
                 </a>
               )}
             </div>
+            {/* Permissões: admins podem ver botões de editar/excluir configs do jogador */}
+            {isAdmin && (
+              <div className="flex justify-center gap-2 mt-2">
+                <button className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">Editar Config</button>
+                <button className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">Excluir Config</button>
+              </div>
+            )}
           </div>
 
-          {/* Informações do jogador */}
+          {/* Informações do jogador - DESIGN ORIGINAL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {/* Configurações de Mouse */}
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -195,7 +200,7 @@ export default async function PlayerPage({ params }) {
                     <span className="font-medium text-gray-800">{age} anos</span>
                   </div>
                 )}
-                {playerData.level && playerData.level !== 'Indisponível' && playerData.level !== '?' && typeof playerData.level === 'number' && (
+                {isValidLevel(playerData.level) && (
                   <>
                     <hr className="border-gray-200" />
                     <div className="flex justify-between">
@@ -209,11 +214,6 @@ export default async function PlayerPage({ params }) {
           </div>
         </div>
       </div>
-      
-      {/* Rodapé */}
-      <footer className="fixed bottom-0 left-0 right-0 text-center py-2">
-        <p className="text-xs text-gray-400">{teamData ? teamData.name.toUpperCase() : 'Development'}</p>
-      </footer>
-    </div>
+    </Layout>
   );
 }

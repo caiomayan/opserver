@@ -1,26 +1,38 @@
-'use client';
+"use client";
+function calcularIdade(dataNascimento) {
+  if (!dataNascimento) return '';
+  const hoje = new Date();
+  const nascimento = new Date(dataNascimento);
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  if (
+    hoje.getMonth() < nascimento.getMonth() ||
+    (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate())
+  ) {
+    idade--;
+  }
+  return idade;
+}
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Layout from '../../components/Layout';
+import { usePlayers, useTeams } from '../../hooks/useData';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminPage() {
-  const [players, setPlayers] = useState([]);
-  const [teams, setTeams] = useState([]);
   const [activeTab, setActiveTab] = useState('players');
-  const [loading, setLoading] = useState(true);
-  
-  // Form states
+  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { players, loading: playersLoading } = usePlayers();
+  const { teams, loading: teamsLoading } = useTeams();
   const [playerForm, setPlayerForm] = useState({
     name: '',
     country: '',
     birthday: '',
     steamid64: '',
-    gamersclubid: '',
     teamId: '0',
     sensitivity: '',
     dpi: ''
   });
-
   const [teamForm, setTeamForm] = useState({
     id: '',
     name: '',
@@ -28,37 +40,53 @@ export default function AdminPage() {
     logo: ''
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  if (authLoading) {
+    return (
+      <Layout footerText="Development">
+        <div className="text-center py-12">
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </Layout>
+    );
+  }
 
-  const fetchData = async () => {
-    try {
-      const [playersRes, teamsRes] = await Promise.all([
-        fetch('/api/players'),
-        fetch('/api/teams')
-      ]);
-      
-      if (playersRes.ok) setPlayers(await playersRes.json());
-      if (teamsRes.ok) setTeams(await teamsRes.json());
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+  if (!isAdmin) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
     }
-    setLoading(false);
-  };
+    return null;
+  }
 
   const handlePlayerSubmit = async (e) => {
     e.preventDefault();
-    // Simular adição (em produção seria uma API POST)
-    console.log('Novo jogador:', playerForm);
-    
-    // Reset form
+    // Adicionar jogador no Supabase
+  const { name, country, birthday, steamid64, teamId, sensitivity, dpi } = playerForm;
+    const settings = {
+      sensitivity: Number(sensitivity),
+      dpi: Number(dpi)
+    };
+    const { error } = await supabase.from('players').insert([
+      {
+        name,
+        country,
+        birthday,
+        steamid64,
+  // ...existing code...
+        teamId,
+        idrole: 0, // ou selecione via form se quiser
+        settings
+      }
+    ]);
+    if (error) {
+      alert('Erro ao adicionar jogador: ' + error.message);
+    } else {
+      alert('Jogador adicionado com sucesso!');
+    }
     setPlayerForm({
       name: '',
       country: '',
       birthday: '',
       steamid64: '',
-      gamersclubid: '',
       teamId: '0',
       sensitivity: '',
       dpi: ''
@@ -67,10 +95,16 @@ export default function AdminPage() {
 
   const handleTeamSubmit = async (e) => {
     e.preventDefault();
-    // Simular adição (em produção seria uma API POST)
-    console.log('Novo time:', teamForm);
-    
-    // Reset form
+    // Adicionar time no Supabase
+    const { id, name, country, logo } = teamForm;
+    const { error } = await supabase.from('teams').insert([
+      { id, name, country, logo }
+    ]);
+    if (error) {
+      alert('Erro ao adicionar time: ' + error.message);
+    } else {
+      alert('Time adicionado com sucesso!');
+    }
     setTeamForm({
       id: '',
       name: '',
@@ -79,29 +113,31 @@ export default function AdminPage() {
     });
   };
 
-  if (loading) {
+  if (playersLoading || teamsLoading) {
     return (
-      <div className="min-h-screen bg-white text-black flex items-center justify-center">
-        <p className="text-gray-500">Carregando...</p>
-      </div>
+      <Layout footerText="Development">
+        <div className="text-center py-12">
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </Layout>
     );
   }
 
+  const headerProps = {
+    logoSize: 24
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black p-4">
-      <div className="max-w-6xl mx-auto">
+    <Layout 
+      headerProps={headerProps}
+      footerText="Development"
+      fullPage={true}
+    >
+      <div className="w-full max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <div className="absolute top-4 left-4 z-30">
-            <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="OPIUM Logo" width="24" height="24" />
-              <span className="text-sm font-semibold text-gray-800">OPSERVER</span>
-            </Link>
-          </div>
-          <div className="pt-16">
-            <h1 className="text-3xl font-semibold text-gray-800">Admin Panel</h1>
-            <p className="text-gray-600">Manage players and teams</p>
-          </div>
+        <div className="mb-8 pt-16">
+          <h1 className="text-3xl font-semibold text-gray-800">Admin Panel</h1>
+          <p className="text-gray-600">Manage players and teams</p>
         </div>
 
         {/* Tabs */}
@@ -110,23 +146,23 @@ export default function AdminPage() {
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('players')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'players'
                     ? 'border-gray-900 text-gray-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Players ({players.length})
+                Players ({players?.length || 0})
               </button>
               <button
                 onClick={() => setActiveTab('teams')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'teams'
                     ? 'border-gray-900 text-gray-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Teams ({teams.length})
+                Teams ({teams?.length || 0})
               </button>
             </nav>
           </div>
@@ -136,7 +172,7 @@ export default function AdminPage() {
         {activeTab === 'players' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Add Player Form */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Player</h2>
               <form onSubmit={handlePlayerSubmit} className="space-y-4">
                 <div>
@@ -186,16 +222,6 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">GamersClub ID</label>
-                  <input
-                    type="text"
-                    value={playerForm.gamersclubid}
-                    onChange={(e) => setPlayerForm({...playerForm, gamersclubid: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                    required
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Team</label>
@@ -204,7 +230,7 @@ export default function AdminPage() {
                     onChange={(e) => setPlayerForm({...playerForm, teamId: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                   >
-                    {teams.map(team => (
+                    {teams?.map(team => (
                       <option key={team.id} value={team.id}>{team.name}</option>
                     ))}
                   </select>
@@ -243,18 +269,23 @@ export default function AdminPage() {
             </div>
 
             {/* Players List */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Current Players</h2>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {players.map((player) => (
+                {players?.map((player) => (
                   <div key={player.steamid64} className="bg-white p-3 rounded-md border border-gray-200">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-800">{player.name}</p>
-                        <p className="text-sm text-gray-600">{player.country} • {player.settings?.sensitivity}/{player.settings?.dpi}</p>
+                        <p className="text-sm text-gray-600">
+                          {player.country} • {player.settings?.sensitivity}/{player.settings?.dpi}
+                          {player.birthday && (
+                            <> • Idade: {calcularIdade(player.birthday)}</>
+                          )}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">Team: {teams.find(t => t.id === player.teamId)?.name || 'Unknown'}</p>
+                        <p className="text-sm text-gray-600">Team: {teams?.find(t => t.id === player.teamId)?.name || 'Unknown'}</p>
                       </div>
                     </div>
                   </div>
@@ -268,7 +299,7 @@ export default function AdminPage() {
         {activeTab === 'teams' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Add Team Form */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Team</h2>
               <form onSubmit={handleTeamSubmit} className="space-y-4">
                 <div>
@@ -326,10 +357,10 @@ export default function AdminPage() {
             </div>
 
             {/* Teams List */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Current Teams</h2>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {teams.map((team) => (
+                {teams?.map((team) => (
                   <div key={team.id} className="bg-white p-3 rounded-md border border-gray-200">
                     <div className="flex justify-between items-center">
                       <div>
@@ -337,7 +368,7 @@ export default function AdminPage() {
                         <p className="text-sm text-gray-600">{team.country} • ID: {team.id}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">Players: {players.filter(p => p.teamId === team.id).length}</p>
+                        <p className="text-sm text-gray-600">Players: {players?.filter(p => p.teamId === team.id).length || 0}</p>
                       </div>
                     </div>
                   </div>
@@ -347,6 +378,6 @@ export default function AdminPage() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
