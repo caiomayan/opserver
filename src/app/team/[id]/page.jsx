@@ -99,19 +99,13 @@ export default function TeamPage({ params }) {
                   className="group relative transition-transform duration-200 ease-in-out hover:scale-110"
                 >
                   {/* Player Circle */}
-                  <div className="w-26 h-26 rounded-full bg-gray-200 overflow-hidden shadow-xl group-hover:shadow-2xl transition-shadow duration-200">
-                    <SteamAvatar 
-                      src={player.avatar}
-                      alt={`Avatar de ${player.name}`}
-                      size={104} // 26 * 4 = 104px
-                      className="w-full h-full object-cover"
-                      fallback={
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span className="text-xl font-bold">{player.name.charAt(0).toUpperCase()}</span>
-                        </div>
-                      }
-                    />
-                  </div>
+                  <SteamAvatar 
+                    src={player.avatar}
+                    alt={`Avatar de ${player.name}`}
+                    size="w-26 h-26"
+                    className="shadow-xl group-hover:shadow-2xl transition-shadow duration-200"
+                    fallbackInitial={player.name.charAt(0).toUpperCase()}
+                  />
                   {/* Hover Card - Design equilibrado */}
                   <div className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 
                                 bg-white border border-gray-200 rounded-lg shadow-md
