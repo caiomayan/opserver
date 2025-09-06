@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import SteamAvatar from '../../components/SteamAvatar';
+import { processAvatarUrl } from '../../utils/steamAvatar';
 
 export default function AvatarTestPage() {
   const [players, setPlayers] = useState([]);
@@ -25,7 +26,7 @@ export default function AvatarTestPage() {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Teste de Avatares Steam</h1>
+      <h1>🧪 Teste de Avatares Steam (Com Proxy)</h1>
       
       {loading ? (
         <p>Carregando jogadores...</p>
@@ -52,7 +53,7 @@ export default function AvatarTestPage() {
                 </div>
 
                 <div style={{ marginBottom: '10px' }}>
-                  <strong>Novo Componente:</strong>
+                  <strong>🆕 Componente com Proxy:</strong>
                   <div style={{ margin: '10px auto', width: 'fit-content' }}>
                     <SteamAvatar 
                       src={player.avatar}
@@ -61,10 +62,13 @@ export default function AvatarTestPage() {
                       size="w-16 h-16"
                     />
                   </div>
+                  <div style={{ fontSize: '10px', color: '#666' }}>
+                    Proxy URL: {processAvatarUrl(player.avatar)}
+                  </div>
                 </div>
 
                 <div style={{ marginBottom: '10px' }}>
-                  <strong>Tag IMG Normal:</strong>
+                  <strong>🔗 IMG Direto (Steam):</strong>
                   <div style={{ margin: '10px auto', width: 'fit-content' }}>
                     {player.avatar ? (
                       <img 
