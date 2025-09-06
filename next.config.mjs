@@ -22,11 +22,19 @@ const nextConfig = {
       }
     ],
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: true, // Permite carregar imagens externas sem otimização
   },
   async headers() {
     return [
+      {
+        source: '/_next/image',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
@@ -35,12 +43,13 @@ const nextConfig = {
             value: 'nosniff',
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          // Permite carregar imagens do Steam
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
           },
         ],
       },

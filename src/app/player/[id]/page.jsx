@@ -9,6 +9,7 @@ import LoadingScreen from '../../../components/LoadingScreen';
 import { calculateAge, getProfileUrls, isValidLevel } from '../../../utils/playerUtils';
 import { getRoleIcon, getRoleName } from '../../../utils/playerRoles';
 import { getHudColorName } from '../../../utils/hudColors';
+import SteamAvatar from '../../../components/SteamAvatar';
 import { useFaceitData } from '../../../hooks/useFaceitData';
 
 export default function PlayerPage({ params }) {
@@ -170,19 +171,12 @@ export default function PlayerPage({ params }) {
           )}
           {/* Avatar e informações principais */}
           <div className="text-center mb-8">
-              <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden shadow-lg mx-auto mb-4">
-                {playerData.avatar ? (
-                  <img 
-                    src={playerData.avatar} 
-                    alt={`Avatar de ${playerData.name}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span className="text-3xl font-bold">{playerData.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
+              <SteamAvatar 
+                src={playerData.avatar}
+                alt={`Avatar de ${playerData.name}`}
+                fallbackInitial={playerData.name.charAt(0).toUpperCase()}
+                className="shadow-lg mx-auto mb-4"
+              />
               <div className="flex items-center justify-center gap-2 mb-2">
                 <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
                 <ReactCountryFlag countryCode={playerData.country} svg style={{width: '1.5em', height: '1.5em'}} />

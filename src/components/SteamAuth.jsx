@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { getMembershipName, getMembershipColor, getMembershipBgColor } from '../utils/membershipTypes';
+import SteamAvatar from './SteamAvatar';
 
 const SteamAuth = () => {
   const [user, setUser] = useState(null);
@@ -160,12 +161,24 @@ const SteamAuth = () => {
             onClick={() => setShowBox((v) => !v)}
             className="flex items-center gap-2 focus:outline-none"
           >
-            <img src={avatarUrl} alt="Avatar" className="w-9 h-9 rounded-full border border-gray-300" />
+            <SteamAvatar 
+              src={avatarUrl} 
+              alt="Avatar" 
+              size="w-9 h-9"
+              fallbackInitial={displayName?.charAt(0) || "U"}
+              className="border border-gray-300"
+            />
           </button>
           {showBox && (
             <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-lg shadow-lg p-4 min-w-[220px] z-50">
               <div className="flex items-center gap-3 mb-3">
-                <img src={avatarUrl} alt="Avatar" className="w-10 h-10 rounded-full border border-gray-300" />
+                <SteamAvatar 
+                  src={avatarUrl} 
+                  alt="Avatar" 
+                  size="w-10 h-10"
+                  fallbackInitial={displayName?.charAt(0) || "U"}
+                  className="border border-gray-300"
+                />
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900 truncate">{displayName}</div>
                   <div 
