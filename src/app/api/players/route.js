@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../../../lib/supabase';
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const teamid = searchParams.get('teamid');
   const playerIds = searchParams.get('playerIds')?.split(',') || null;
-  let { data: playersData, error } = await supabase.from('players').select('*');
-  if (error) playersData = [];
-  let targetPlayers = playersData;
+  let query = supabase.from('players').select('*');
   if (teamid) {
-    targetPlayers = playersData.filter(player => player.teamid === teamid);
+    query = supabase.from('players').select('*').eq('teamid', teamid);
   } else if (playerIds) {
-    targetPlayers = playersData.filter(player => playerIds.includes(player.steamid64));
+    query = supabase.from('players').select('*').in('steamid64', playerIds);
+  }
+  let { data: playersData, error } = await query;
+  if (error) {
+    return NextResponse.json({ error: error.message, data: [] }, { status: 500 });
   }
   const getSteamAvatar = async (steamid64) => {
     try {
@@ -22,7 +21,7 @@ export async function GET(request) {
       if (!steamApiUrl || !steamApiKey) return null;
       const response = await fetch(
         `${steamApiUrl}?key=${steamApiKey}&steamids=${steamid64}`,
-        { timeout: 5000, headers: { 'User-Agent': 'OPSERVER/1.0' } }
+        { headers: { 'User-Agent': 'OPSERVER/1.0' } }
       );
       if (!response.ok) return null;
       const data = await response.json();
@@ -33,23 +32,28 @@ export async function GET(request) {
   };
   try {
     const playersWithData = await Promise.all(
-      targetPlayers.map(async (player) => {
+      playersData.map(async (player) => {
         let avatar = null;
+        let configs = null;
         if (player.steamid64) {
           avatar = await getSteamAvatar(player.steamid64);
+          // Buscar configs detalhadas do jogador
+          const { data: configsData, error: configsError } = await supabase
+            .from('player_configs')
+            .select('*')
+            .eq('steamid64', player.steamid64)
+            .single();
+          configs = configsError ? null : configsData;
         }
         return {
           ...player,
-          avatar
+          avatar,
+          configs
         };
       })
     );
-    return NextResponse.json(playersWithData);
+    return NextResponse.json({ data: playersWithData });
   } catch (error) {
-    const playersWithError = targetPlayers.map(player => ({
-      ...player,
-      avatar: null
-    }));
-    return NextResponse.json(playersWithError);
+    return NextResponse.json({ error: error.message, data: [] }, { status: 500 });
   }
 }

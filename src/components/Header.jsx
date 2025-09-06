@@ -1,48 +1,27 @@
 import Link from 'next/link';
-import ReactCountryFlag from 'react-country-flag';
+import SteamAuth from './SteamAuth';
 
-const Header = ({ 
-  logoSize = 24, 
-  showBackButton = false, 
-  centerLogo = null,
-  centerCountry = null 
-}) => {
+const Header = () => {
+
   return (
-    <>
-      {/* Logo/Team no Centro */}
-      {centerLogo && (
-        <header className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 text-center">
-          <Link href={centerLogo.href || "/"}>
-            {centerLogo.src ? (
-              <img 
-                src={centerLogo.src || "/teams/unknown.svg"} 
-                alt={centerLogo.alt || "Logo"}
-                className="mx-auto object-contain" 
-                width="40" 
-                height="40" 
-              />
-            ) : (
-              <img 
-                src="/teams/unknown.svg" 
-                alt="Unknown Team"
-                className="mx-auto object-contain" 
-                width="40" 
-                height="40" 
-              />
-            )}
-          </Link>
-          {centerCountry && (
-            <div className="mt-1">
-              <ReactCountryFlag 
-                countryCode={centerCountry} 
-                svg 
-                style={{width: '0.8em', height: '0.8em'}} 
-              />
-            </div>
-          )}
-        </header>
-      )}
-    </>
+    <nav className="w-full h-16 flex items-center justify-between px-6">
+      {/* Logo e menu */}
+      <div className="flex items-center gap-8">
+        <Link href="/">
+          <img src="/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Início</Link>
+          <Link href="/teams" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Times</Link>
+          <Link href="#" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Jogar</Link>
+          <span className="text-gray-400 font-semibold cursor-not-allowed">Inventário</span>
+          <Link href="#" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Ranking</Link>
+          <Link href="/prosettings" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">ProSettings</Link>
+        </div>
+      </div>
+      {/* Login/Avatar */}
+  <SteamAuth />
+    </nav>
   );
 };
 

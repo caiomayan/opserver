@@ -1,4 +1,4 @@
-import Header from './Header';
+import LogoHeader from './LogoHeader';
 import Footer from './Footer';
 
 const Layout = ({ 
@@ -11,7 +11,7 @@ const Layout = ({
   if (fullPage) {
     return (
       <div className={`min-h-screen bg-white text-black flex flex-col relative ${className}`}>
-        <Header {...headerProps} />
+  <LogoHeader {...headerProps} />
         {children}
         <Footer text={footerText} />
       </div>
@@ -20,7 +20,7 @@ const Layout = ({
   
   return (
     <div className={`min-h-screen bg-white text-black flex flex-col relative ${className}`}>
-      <Header {...headerProps} />
+  <LogoHeader {...headerProps} />
       
       <div className="flex-1 flex items-center justify-center p-4">
         {children}
