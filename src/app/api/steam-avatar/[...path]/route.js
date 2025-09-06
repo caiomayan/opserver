@@ -70,22 +70,93 @@ export async function GET(request, { params }) {
     if (!steamResponse.ok) {
       console.error(`❌ Steam fetch failed: ${steamResponse.status} ${steamResponse.statusText}`);
       
-      // ✅ FALLBACK: Retorna avatar padrão em caso de erro
-      const fallbackResponse = await fetch('https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg');
-      if (fallbackResponse.ok) {
-        const fallbackBuffer = await fallbackResponse.arrayBuffer();
-        return new Response(fallbackBuffer, {
-          status: 200,
+      // ✅ RATE LIMITING: Se Steam retornar 429 (Too Many Requests), espera antes do fallback
+      if (steamResponse.status === 429) {
+        console.warn('⚠️ Steam rate limiting detectado - usando cache ou fallback');
+        // Retorna erro específico para rate limiting
+        return NextResponse.json({ 
+          error: 'Steam rate limiting',
+          type: 'rate_limit',
+          retryAfter: steamResponse.headers.get('retry-after') || '60'
+        }, { 
+          status: 429,
           headers: {
-            'Content-Type': 'image/jpeg',
-            'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600', // Cache menor para fallback
-            'X-Fallback': 'true'
-          },
+            'Retry-After': steamResponse.headers.get('retry-after') || '60',
+            'Cache-Control': 'public, max-age=300' // Cache por 5min em caso de rate limit
+          }
         });
       }
       
+      // ✅ FALLBACK MELHORADO: Tenta URL direta Steam antes de desistir
+      if (steamResponse.status === 404 && steamUrl.includes('steamcdn-a.akamaihd.net')) {
+        const directSteamUrl = steamUrl.replace(
+          'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/',
+          'https://avatars.steamstatic.com/'
+        ).replace(/\/[a-f0-9]{2}\//, '/');
+        
+        console.log(`🔄 Tentando URL direta Steam: ${directSteamUrl}`);
+        
+        try {
+          const fallbackResponse = await fetch(directSteamUrl, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; OpServer/1.0)',
+              'Referer': 'https://steamcommunity.com/',
+            },
+            signal: AbortSignal.timeout(10000),
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackBuffer = await fallbackResponse.arrayBuffer();
+            const contentType = fallbackResponse.headers.get('content-type') || 'image/jpeg';
+            
+            console.log(`✅ Fallback Steam direto funcionou: ${directSteamUrl}`);
+            
+            return new Response(fallbackBuffer, {
+              status: 200,
+              headers: {
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200', // Cache menor para fallback
+                'X-Fallback': 'steam-direct',
+                'Access-Control-Allow-Origin': '*',
+              },
+            });
+          }
+        } catch (fallbackError) {
+          console.warn('❌ Fallback Steam direto também falhou:', fallbackError);
+        }
+      }
+      
+      // ✅ ÚLTIMO RECURSO: Avatar padrão Steam
+      try {
+        const defaultAvatarUrl = 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+        const defaultResponse = await fetch(defaultAvatarUrl, {
+          redirect: 'follow',
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (defaultResponse.ok) {
+          const defaultBuffer = await defaultResponse.arrayBuffer();
+          console.log(`✅ Usando avatar padrão Steam como fallback`);
+          
+          return new Response(defaultBuffer, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Cache-Control': 'public, max-age=1800, stale-while-revalidate=3600', // Cache menor para fallback
+              'X-Fallback': 'default-avatar',
+              'Access-Control-Allow-Origin': '*',
+            },
+          });
+        }
+      } catch (defaultError) {
+        console.warn('❌ Avatar padrão também falhou:', defaultError);
+      }
+      
       return NextResponse.json({ 
-        error: `Steam avatar not available: ${steamResponse.status}` 
+        error: `Steam avatar not available: ${steamResponse.status}`,
+        originalUrl: steamUrl
       }, { status: steamResponse.status });
     }
 

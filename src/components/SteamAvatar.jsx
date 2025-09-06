@@ -16,30 +16,36 @@ const SteamAvatar = ({
   const [hasError, setHasError] = useState(false);
   const [strategy, setStrategy] = useState('direct');
 
-  // ✅ ESTRATÉGIAS SIMPLIFICADAS BASEADAS NA DESCOBERTA
+  // ✅ ESTRATÉGIAS OTIMIZADAS (corrigido qualidade + timeout)
   const getImageStrategies = (originalSrc) => {
     if (!originalSrc || !isSteamAvatarUrl(originalSrc)) {
       return [originalSrc]; // Não é Steam, usa direto
     }
 
-    // ✅ URLs Steam funcionam com redirects - testa ambos formatos
-    const modernSteamUrl = processAvatarUrl(originalSrc); // Converte para formato moderno
+    // ✅ URLs Steam com qualidade otimizada
+    const modernSteamUrl = processAvatarUrl(originalSrc);
+    
+    // ✅ FORÇA qualidade alta se possível
+    const highQualityUrl = modernSteamUrl.replace('_medium.jpg', '_full.jpg').replace('.jpg', '_full.jpg');
 
     return [
-      // 1️⃣ Formato moderno Steam (steamcdn-a) - funciona com redirect
+      // 1️⃣ Steam formato moderno ALTA QUALIDADE
+      highQualityUrl,
+      
+      // 2️⃣ Steam formato moderno original
       modernSteamUrl,
       
-      // 2️⃣ Proxy específico Steam (nossa implementação com redirects)
-      `/api/steam-avatar/${modernSteamUrl.split('/').pop()}`,
+      // 3️⃣ Proxy Steam com qualidade original (sem otimização que pode degradar)
+      `/api/steam-avatar/${originalSrc.split('/').pop()}`,
       
-      // 3️⃣ Direto original (backup)
+      // 4️⃣ Direto original (backup)
       originalSrc,
       
-      // 4️⃣ Proxy universal (com redirect support)
+      // 5️⃣ Proxy universal (último recurso)
       `/api/proxy-image?url=${encodeURIComponent(modernSteamUrl)}`,
       
-      // 5️⃣ Fallback Steam default avatar
-      'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg'
+      // 6️⃣ Fallback Steam default (alta qualidade)
+      'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
     ];
   };
 
@@ -79,23 +85,28 @@ const SteamAvatar = ({
         }
       };
       
-      img.onerror = () => {
+      img.onerror = (error) => {
         if (mounted) {
-          console.warn(`❌ Falhou estratégia ${currentStrategy}`);
+          console.warn(`❌ Falhou estratégia ${currentStrategy}:`, error);
           currentStrategyIndex++;
-          setTimeout(tryNextStrategy, 300); // Delay para evitar spam
+          
+          // ✅ DELAY PROGRESSIVO: Evita spam + rate limiting
+          const delay = currentStrategyIndex <= 2 ? 500 : 1500; // Mais tempo entre tentativas
+          setTimeout(tryNextStrategy, delay);
         }
       };
 
-      // Timeout por estratégia
+      // ✅ TIMEOUT ESTENDIDO por estratégia (estava muito agressivo)
       const timeout = setTimeout(() => {
-        if (mounted) {
+        if (mounted && img.src) {
           console.warn(`⏰ Timeout na estratégia: ${currentStrategy}`);
-          img.src = '';
+          img.onerror = null; // Remove handlers
+          img.onload = null;
+          img.src = ''; // Cancel current load
           currentStrategyIndex++;
           tryNextStrategy();
         }
-      }, 5000);
+      }, currentStrategyIndex <= 1 ? 8000 : 15000); // 8s para direto, 15s para proxies
 
       img.src = currentSrc;
 
@@ -129,7 +140,7 @@ const SteamAvatar = ({
     );
   }
 
-  // ✅ SUCCESS STATE
+  // ✅ SUCCESS STATE com proteção contra onError tardio
   return (
     <div className={`${size} rounded-full bg-gray-200 overflow-hidden ${className} relative group`}>
       <img
@@ -137,17 +148,30 @@ const SteamAvatar = ({
         alt={alt}
         className="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
         loading="lazy"
-        onError={() => {
-          console.warn(`❌ Falha final na imagem: ${imageSrc}`);
-          setHasError(true);
-          setImageSrc(null);
+        onError={(e) => {
+          // ✅ PROTEÇÃO: Só trata erro se a imagem realmente não carregou
+          console.warn(`❌ onError tardio chamado para: ${imageSrc}`);
+          
+          // Verifica se a imagem realmente falhou ou se é um falso positivo
+          if (e.target.naturalWidth === 0 && e.target.naturalHeight === 0) {
+            console.warn(`❌ Falha real na imagem: ${imageSrc} - resetando`);
+            setHasError(true);
+            setImageSrc(null);
+          } else {
+            console.log(`✅ Falso positivo de erro - imagem OK: ${e.target.naturalWidth}x${e.target.naturalHeight}`);
+          }
+        }}
+        onLoad={(e) => {
+          // ✅ CONFIRMA que a imagem carregou corretamente
+          console.log(`✅ Imagem confirmada carregada: ${imageSrc} (${e.target.naturalWidth}x${e.target.naturalHeight})`);
         }}
       />
       
-      {/* Debug info em dev */}
+      {/* Debug info em dev com mais detalhes */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="absolute -top-8 left-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
-          {strategy} ✅
+        <div className="absolute -top-12 left-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
+          <div>{strategy} ✅</div>
+          <div className="text-xs opacity-75">{imageSrc.split('/').pop()}</div>
         </div>
       )}
     </div>
