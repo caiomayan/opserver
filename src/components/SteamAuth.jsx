@@ -1,4 +1,6 @@
 
+'use client';
+
 import { useEffect, useState } from 'react';
 import { getMembershipName, getMembershipColor, getMembershipBgColor } from '../utils/membershipTypes';
 

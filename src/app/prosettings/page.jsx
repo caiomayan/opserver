@@ -1,4 +1,6 @@
-"use client";        const response = await fetch('/api/players', {cache: 'no-store'});import { useEffect, useState } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -10,10 +12,9 @@ const ProSettingsPage = () => {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/players`, {cache: 'no-store'});
-        if (res.ok) {
-          const data = await res.json();
+        const response = await fetch('/api/players', {cache: 'no-store'});
+        if (response.ok) {
+          const data = await response.json();
           setPlayers(data.data || []);
         }
       } finally {
@@ -25,7 +26,7 @@ const ProSettingsPage = () => {
 
   return (
     <>
-  <Header />
+      <Header />
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-64px-56px)]">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">ProSettings</h1>
         <div className="flex flex-wrap justify-center gap-8">

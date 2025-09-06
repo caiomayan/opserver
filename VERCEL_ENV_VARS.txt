@@ -1,0 +1,42 @@
+# ⚠️  CONFIGURAÇÃO ESPECÍFICA PARA O VERCEL  ⚠️
+# Configure estas variáveis EXATAMENTE como mostrado abaixo no painel do Vercel
+
+# ==========================================
+# STEAM API (Obrigatório)
+# ==========================================
+STEAM_API_KEY=1270A62C1573C745CB26B8526242F0BD
+STEAM_API_URL=https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/
+
+# ==========================================
+# SUPABASE (Obrigatório)
+# ==========================================
+NEXT_PUBLIC_SUPABASE_URL=https://bbaiivuvayfpzzoohusy.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiYWlpdnV2YXlmcHp6b29odXN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyOTY2MTcsImV4cCI6MjA3MDg3MjYxN30.JYM8V34SPqoZhA7cOnS6O2tDFuaE-2S9CrzMHRPIwpY
+
+# ==========================================
+# FACEIT API (Obrigatório)
+# ==========================================
+FACEIT_API_KEY=0e8c77f3-daa8-42ac-ac8b-ba823bb6ee8d
+
+# ==========================================
+# AUTENTICAÇÃO (IMPORTANTE!)
+# ==========================================
+# ⚠️ MUDE ESTAS PARA PRODUÇÃO!
+NEXTAUTH_SECRET=SUA_CHAVE_SUPER_FORTE_AQUI_DIFERENTE_DA_LOCAL
+NEXTAUTH_URL=https://SEU_DOMINIO.vercel.app
+
+# ==========================================
+# INSTRUÇÕES:
+# ==========================================
+# 1. Acesse o painel do Vercel
+# 2. Vá em: Settings → Environment Variables  
+# 3. Adicione cada variável acima uma por uma
+# 4. ⚠️ IMPORTANTE: Gere uma nova NEXTAUTH_SECRET forte
+# 5. ⚠️ IMPORTANTE: Substitua NEXTAUTH_URL pelo seu domínio real
+# 6. Faça redeploy do projeto
+
+# ==========================================
+# GERAR NOVA NEXTAUTH_SECRET:
+# ==========================================
+# Execute no terminal:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
