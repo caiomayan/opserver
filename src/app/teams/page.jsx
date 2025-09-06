@@ -16,8 +16,8 @@ export default function TeamsPage() {
     const fetchTeams = async () => {
       try {
         setLoading(true);
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/teams`, {cache: 'no-store'});
+        // Usar URL relativa para funcionar tanto em localhost quanto em produção
+        const res = await fetch('/api/teams', {cache: 'no-store'});
         
         if (res.ok) {
           const data = await res.json();

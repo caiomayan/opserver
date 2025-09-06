@@ -11,8 +11,7 @@ const SteamAuth = () => {
   // Function to check if user exists and get data
   const checkUserExists = async (steamUser) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const response = await fetch(`${baseUrl}/api/auth/user`, {
+      const response = await fetch('/api/auth/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,8 +34,7 @@ const SteamAuth = () => {
   // Function to register new user in Supabase
   const registerUserInSupabase = async (steamUser) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const response = await fetch(`${baseUrl}/api/auth/register`, {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,8 +60,7 @@ const SteamAuth = () => {
     const fetchUserAndRegister = async () => {
       try {
         // Usar sempre a API local (que vai decidir entre Express ou JWT)
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/auth/user`, { 
+        const res = await fetch('/api/auth/user', { 
           credentials: 'include',
           cache: 'no-store'
         });
@@ -100,8 +97,7 @@ const SteamAuth = () => {
     
     try {
       // Usar sempre a API local (que vai decidir entre Express ou JWT)
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const response = await fetch(`${baseUrl}/api/auth/logout`, {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
       });
@@ -148,9 +144,8 @@ const SteamAuth = () => {
       {!user ? (
         <button
           onClick={() => {
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
             // Usar sempre a API do Next.js para autenticação Steam
-            window.location.href = `${baseUrl}/api/auth/steam`;
+            window.location.href = '/api/auth/steam';
           }}
           className="bg-[#1b2836] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#171a21] transition-colors"
         >

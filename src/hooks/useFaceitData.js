@@ -17,7 +17,7 @@ export const useFaceitData = (steamId) => {
         setError(null);
 
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const response = await fetch(`${baseUrl}/api/faceit/${steamId}`);
+        const response = await fetch(`/api/faceit/${steamId}`);
 
         if (response.ok) {
           const data = await response.json();

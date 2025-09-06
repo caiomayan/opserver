@@ -73,8 +73,7 @@ export default function PlayerPage({ params }) {
         
         // Fetch current user data (if logged in)
         try {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-          const userRes = await fetch(`${baseUrl}/api/auth/user`, { 
+          const userRes = await fetch('/api/auth/user', { 
             credentials: 'include',
             cache: 'no-store'
           });
@@ -88,8 +87,7 @@ export default function PlayerPage({ params }) {
         }
 
         // Fetch player data
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const playersRes = await fetch(`${baseUrl}/api/players?playerIds=${playerId}`, {cache: 'no-store'});
+        const playersRes = await fetch(`/api/players?playerIds=${playerId}`, {cache: 'no-store'});
         if (!playersRes.ok) throw new Error('Erro ao carregar jogador');
         const playersResJson = await playersRes.json();
         const playersArr = playersResJson.data || [];
@@ -100,7 +98,7 @@ export default function PlayerPage({ params }) {
         setPlayerConfigs(player?.configs || null);
         
         if (player?.teamid) {
-          const teamsRes = await fetch(`${baseUrl}/api/teams`, {cache: 'no-store'});
+          const teamsRes = await fetch('/api/teams', {cache: 'no-store'});
           if (teamsRes.ok) {
             const teamsResJson = await teamsRes.json();
             const team = (teamsResJson.data || []).find(team => team.id === player.teamid);
