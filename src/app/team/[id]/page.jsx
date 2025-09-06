@@ -6,6 +6,7 @@ import ReactCountryFlag from "react-country-flag";
 import LogoHeader from '../../../components/LogoHeader';
 import Layout from '../../../components/Layout';
 import LoadingScreen from '../../../components/LoadingScreen';
+import SteamAvatar from '../../../components/SteamAvatar';
 import { isValidLevel, calculateAge } from '../../../utils/playerUtils';
 import { getRoleIcon } from '../../../utils/playerRoles';
 
@@ -99,17 +100,17 @@ export default function TeamPage({ params }) {
                 >
                   {/* Player Circle */}
                   <div className="w-26 h-26 rounded-full bg-gray-200 overflow-hidden shadow-xl group-hover:shadow-2xl transition-shadow duration-200">
-                    {player.avatar ? (
-                      <img 
-                        src={player.avatar} 
-                        alt={`Avatar de ${player.name}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <span className="text-xl font-bold">{player.name.charAt(0).toUpperCase()}</span>
-                      </div>
-                    )}
+                    <SteamAvatar 
+                      src={player.avatar}
+                      alt={`Avatar de ${player.name}`}
+                      size={104} // 26 * 4 = 104px
+                      className="w-full h-full object-cover"
+                      fallback={
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <span className="text-xl font-bold">{player.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                      }
+                    />
                   </div>
                   {/* Hover Card - Design equilibrado */}
                   <div className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 
