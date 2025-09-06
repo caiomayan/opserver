@@ -15,6 +15,7 @@ const SteamAvatar = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [strategy, setStrategy] = useState('direct');
+  const [loadedSuccessfully, setLoadedSuccessfully] = useState(false); // ✅ NOVO: Track de sucesso
 
   // ✅ ESTRATÉGIAS OTIMIZADAS (corrigido qualidade + timeout)
   const getImageStrategies = (originalSrc) => {
@@ -82,6 +83,12 @@ const SteamAvatar = ({
           setImageSrc(currentSrc);
           setIsLoading(false);
           setHasError(false);
+          setLoadedSuccessfully(true); // ✅ MARCA como carregado com sucesso
+          
+          // ✅ LIMPA todos os timeouts e handlers
+          clearTimeout(timeout);
+          img.onload = null;
+          img.onerror = null;
         }
       };
       
@@ -149,20 +156,25 @@ const SteamAvatar = ({
         className="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
         loading="lazy"
         onError={(e) => {
-          // ✅ PROTEÇÃO: Só trata erro se a imagem realmente não carregou
-          console.warn(`❌ onError tardio chamado para: ${imageSrc}`);
-          
-          // Verifica se a imagem realmente falhou ou se é um falso positivo
-          if (e.target.naturalWidth === 0 && e.target.naturalHeight === 0) {
-            console.warn(`❌ Falha real na imagem: ${imageSrc} - resetando`);
-            setHasError(true);
-            setImageSrc(null);
+          // ✅ PROTEÇÃO: Só trata erro se NÃO carregou com sucesso antes
+          if (!loadedSuccessfully) {
+            console.warn(`❌ onError tardio chamado para: ${imageSrc}`);
+            
+            // Verifica se a imagem realmente falhou ou se é um falso positivo
+            if (e.target.naturalWidth === 0 && e.target.naturalHeight === 0) {
+              console.warn(`❌ Falha real na imagem: ${imageSrc} - resetando`);
+              setHasError(true);
+              setImageSrc(null);
+            } else {
+              console.log(`✅ Falso positivo de erro - imagem OK: ${e.target.naturalWidth}x${e.target.naturalHeight}`);
+            }
           } else {
-            console.log(`✅ Falso positivo de erro - imagem OK: ${e.target.naturalWidth}x${e.target.naturalHeight}`);
+            console.log(`🛡️ onError ignorado - imagem já carregou com sucesso anteriormente`);
           }
         }}
         onLoad={(e) => {
-          // ✅ CONFIRMA que a imagem carregou corretamente
+          // ✅ CONFIRMA que a imagem carregou corretamente E atualiza flag
+          setLoadedSuccessfully(true);
           console.log(`✅ Imagem confirmada carregada: ${imageSrc} (${e.target.naturalWidth}x${e.target.naturalHeight})`);
         }}
       />
