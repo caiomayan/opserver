@@ -16,23 +16,29 @@ const SteamAvatar = ({
   const [hasError, setHasError] = useState(false);
   const [strategy, setStrategy] = useState('direct');
 
-  // ✅ ESTRATÉGIAS MODERNAS EM ORDEM DE PREFERÊNCIA
+  // ✅ ESTRATÉGIAS SIMPLIFICADAS BASEADAS NA DESCOBERTA
   const getImageStrategies = (originalSrc) => {
     if (!originalSrc || !isSteamAvatarUrl(originalSrc)) {
       return [originalSrc]; // Não é Steam, usa direto
     }
 
+    // ✅ URLs Steam funcionam com redirects - testa ambos formatos
+    const modernSteamUrl = processAvatarUrl(originalSrc); // Converte para formato moderno
+
     return [
-      // 1️⃣ Direto (funciona local, pode falhar no Vercel)
+      // 1️⃣ Formato moderno Steam (steamcdn-a) - funciona com redirect
+      modernSteamUrl,
+      
+      // 2️⃣ Proxy específico Steam (nossa implementação com redirects)
+      `/api/steam-avatar/${modernSteamUrl.split('/').pop()}`,
+      
+      // 3️⃣ Direto original (backup)
       originalSrc,
       
-      // 2️⃣ Proxy específico Steam (nossa implementação)
-      processAvatarUrl(originalSrc),
+      // 4️⃣ Proxy universal (com redirect support)
+      `/api/proxy-image?url=${encodeURIComponent(modernSteamUrl)}`,
       
-      // 3️⃣ Proxy universal (URL param)
-      `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`,
-      
-      // 4️⃣ Fallback Steam default avatar
+      // 5️⃣ Fallback Steam default avatar
       'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg'
     ];
   };

@@ -13,15 +13,42 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Path is required' }, { status: 400 });
     }
 
-    // Reconstrói a URL do avatar Steam
+    // ✅ NOVO: Reconstrói a URL usando formato MODERNO Steam
     const avatarPath = Array.isArray(path) ? path.join('/') : path;
-    const steamUrl = `https://avatars.steamstatic.com/${avatarPath}`;
+    
+    let steamUrl;
+    
+    // ✅ Se é apenas filename (HASH_size.jpg), converte para formato moderno
+    if (!avatarPath.includes('/')) {
+      const match = avatarPath.match(/^([a-f0-9]{40})(_\w+)?\.jpg$/i);
+      if (match) {
+        const hash = match[1];
+        const size = match[2] || '';
+        const prefix = hash.substring(0, 2);
+        
+        // ✅ Formato moderno que funciona
+        steamUrl = `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${prefix}/${hash}${size}.jpg`;
+        console.log(`🔄 Convertendo para formato moderno: ${avatarPath} → ${steamUrl}`);
+      } else {
+        // Fallback para formato antigo
+        steamUrl = `https://avatars.steamstatic.com/${avatarPath}`;
+      }
+    } else {
+      // ✅ Se já tem path completo, usa steamcdn-a.akamaihd.net
+      if (avatarPath.startsWith('/steamcommunity/public/images/avatars/')) {
+        steamUrl = `https://steamcdn-a.akamaihd.net${avatarPath}`;
+      } else {
+        steamUrl = `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${avatarPath}`;
+      }
+    }
 
     console.log(`🔄 Proxying Steam avatar: ${steamUrl}`);
 
-    // ✅ ESTRATÉGIA MODERNA: Headers otimizados para Steam + Vercel
+    // ✅ FETCH OTIMIZADO: Headers específicos Steam + FOLLOW REDIRECTS
     const steamResponse = await fetch(steamUrl, {
       method: 'GET',
+      // ✅ CRITICAL: Follow redirects (Steam usa 301 redirects)
+      redirect: 'follow',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; OpServer/1.0; +https://opserver.vercel.app)',
         'Accept': 'image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8',
@@ -37,7 +64,7 @@ export async function GET(request, { params }) {
         'Sec-Fetch-Site': 'cross-site'
       },
       // ✅ TIMEOUT para evitar hanging no Vercel
-      signal: AbortSignal.timeout(10000), // 10s timeout
+      signal: AbortSignal.timeout(15000), // 15s timeout (mais tempo para redirects)
     });
 
     if (!steamResponse.ok) {

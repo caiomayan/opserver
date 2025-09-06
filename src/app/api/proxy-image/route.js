@@ -51,8 +51,10 @@ export async function GET(request) {
 
     const response = await fetch(imageUrl, {
       method: 'GET',
+      // ✅ CRITICAL: Follow redirects (Steam usa 301 redirects)
+      redirect: 'follow',
       headers,
-      signal: AbortSignal.timeout(8000), // 8s timeout
+      signal: AbortSignal.timeout(12000), // 12s timeout para redirects
     });
 
     if (!response.ok) {
