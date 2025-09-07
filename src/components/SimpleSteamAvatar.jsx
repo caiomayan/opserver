@@ -5,26 +5,32 @@ import { useState } from 'react';
 // 🎯 SOLUÇÃO SIMPLES: Apenas conversão para Fastly
 function convertToFastly(steamUrl) {
   if (!steamUrl || typeof steamUrl !== 'string') {
+    console.log(`❌ URL inválida:`, steamUrl);
     return null;
   }
 
   // Se já é Fastly, retorna como está
   if (steamUrl.includes('avatars.fastly.steamstatic.com')) {
+    console.log(`✅ Já é Fastly:`, steamUrl);
     return steamUrl;
   }
 
   // Converte URLs Steam antigas para Fastly
   if (steamUrl.includes('avatars.steamstatic.com') || steamUrl.includes('steamcdn-a.akamaihd.net')) {
-    // Extrai o hash da URL
-    const hashMatch = steamUrl.match(/([a-f0-9]{40})/);
+    // Extrai o hash da URL - mais permissivo
+    const hashMatch = steamUrl.match(/([a-f0-9]{40})/i);
     if (hashMatch) {
       const hash = hashMatch[1];
-      // Prioriza _full, senão _medium
-      return `https://avatars.fastly.steamstatic.com/${hash}_full.jpg`;
+      const fastlyUrl = `https://avatars.fastly.steamstatic.com/${hash}_full.jpg`;
+      console.log(`🔄 Steam → Fastly: ${steamUrl} → ${fastlyUrl}`);
+      return fastlyUrl;
+    } else {
+      console.warn(`❌ Hash não encontrado em:`, steamUrl);
     }
   }
 
   // Se não é Steam URL, retorna original
+  console.log(`⚪ Não é Steam URL, usando original:`, steamUrl);
   return steamUrl;
 }
 
@@ -38,8 +44,14 @@ export default function SimpleSteamAvatar({
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 🔍 DEBUG: Log da URL original
+  console.log(`🔍 SimpleSteamAvatar recebeu src:`, src);
+
   // Converte para Fastly
   const fastlyUrl = convertToFastly(src);
+  
+  // 🔍 DEBUG: Log da conversão
+  console.log(`🔄 Convertido para:`, fastlyUrl);
 
   // ✅ SEMPRE tenta carregar primeiro, só mostra fallback após erro
   return (
