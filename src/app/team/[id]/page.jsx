@@ -15,19 +15,34 @@ export default function TeamPage({ params }) {
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { id: teamId } = React.use(params);
+  const [teamId, setTeamId] = useState(null);
 
+  // Primeiro useEffect para extrair teamId dos params
+  useEffect(() => {
+    const unwrapParams = async () => {
+      const unwrapped = await params;
+      setTeamId(unwrapped.id);
+    };
+    unwrapParams();
+  }, [params]);
+
+  // Segundo useEffect para buscar dados quando teamId estiver disponível
   useEffect(() => {
     if (!teamId) return;
+    
     const fetchTeamData = async () => {
       try {
         setLoading(true);
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        
+        // Buscar dados do time
         const teamsRes = await fetch(`${baseUrl}/api/teams`, {cache: 'no-store'});
         if (!teamsRes.ok) throw new Error('Erro ao carregar dados do time');
         const teamsResJson = await teamsRes.json();
         const team = (teamsResJson.data || []).find(team => team.id === teamId);
         setTeamData(team);
+        
+        // Buscar players do time
         if (team) {
           const playersRes = await fetch(`${baseUrl}/api/players?teamid=${teamId}`, {cache: 'no-store'});
           if (playersRes.ok) {
@@ -41,6 +56,7 @@ export default function TeamPage({ params }) {
         setLoading(false);
       }
     };
+    
     fetchTeamData();
   }, [teamId]);
 
