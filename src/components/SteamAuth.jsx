@@ -172,7 +172,7 @@ const SteamAuth = () => {
           {showBox && (
             <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-lg shadow-lg p-4 min-w-[220px] z-50">
               <div className="flex items-center gap-3 mb-3">
-                <SteamAvatar 
+                <SimpleSteamAvatar 
                   src={avatarUrl} 
                   alt="Avatar" 
                   size="w-10 h-10"
