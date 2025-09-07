@@ -39,7 +39,6 @@ const ProSettingsPage = () => {
             >
               <SimpleSteamAvatar 
                 src={player.avatar}
-                steamId64={player.steamid64}
                 alt={`Avatar de ${player.name}`}
                 fallbackInitial={player.name.charAt(0).toUpperCase()}
                 size="w-26 h-26"

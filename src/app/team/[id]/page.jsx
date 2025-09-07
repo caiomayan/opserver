@@ -101,7 +101,6 @@ export default function TeamPage({ params }) {
                   {/* Player Circle */}
                   <SimpleSteamAvatar 
                     src={player.avatar}
-                    steamId64={player.steamid64}
                     alt={`Avatar de ${player.name}`}
                     size="w-26 h-26"
                     className="shadow-xl group-hover:shadow-2xl transition-shadow duration-200"
