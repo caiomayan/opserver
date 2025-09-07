@@ -18,15 +18,50 @@ export async function GET(request) {
     try {
       const steamApiUrl = process.env.STEAM_API_URL;
       const steamApiKey = process.env.STEAM_API_KEY;
-      if (!steamApiUrl || !steamApiKey) return null;
+      
+      if (!steamApiUrl || !steamApiKey) {
+        console.warn('🔧 Steam API não configurada');
+        return null;
+      }
+
+      console.log(`🔍 Buscando avatar para Steam ID: ${steamid64}`);
+
+      // ✅ FETCH OTIMIZADO: Timeout + Headers específicos Steam
       const response = await fetch(
         `${steamApiUrl}?key=${steamApiKey}&steamids=${steamid64}`,
-        { headers: { 'User-Agent': 'OPSERVER/1.0' } }
+        { 
+          headers: { 
+            'User-Agent': 'Mozilla/5.0 (compatible; OpServer/1.0; +https://opserver.vercel.app)',
+            'Accept': 'application/json',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+          },
+          // ✅ TIMEOUT específico para Vercel (mais agressivo)
+          signal: AbortSignal.timeout(12000), // 12s timeout
+        }
       );
-      if (!response.ok) return null;
+
+      if (!response.ok) {
+        console.error(`❌ Steam API falhou: ${response.status} ${response.statusText} para ID ${steamid64}`);
+        return null;
+      }
+
       const data = await response.json();
-      return data.response?.players?.[0]?.avatarfull || null;
+      const avatar = data.response?.players?.[0]?.avatarfull || null;
+      
+      if (avatar) {
+        console.log(`✅ Avatar encontrado: ${avatar}`);
+      } else {
+        console.warn(`⚠️ Nenhum avatar retornado para Steam ID ${steamid64}`);
+      }
+      
+      return avatar;
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.error(`⏰ Timeout na Steam API para ID ${steamid64}`);
+      } else {
+        console.error(`💥 Erro na Steam API para ID ${steamid64}:`, error.message);
+      }
       return null;
     }
   };

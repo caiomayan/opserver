@@ -173,6 +173,7 @@ export default function PlayerPage({ params }) {
           <div className="text-center mb-8">
               <SimpleSteamAvatar 
                 src={playerData.avatar}
+                steamId64={playerData.steamid64}
                 alt={`Avatar de ${playerData.name}`}
                 size="w-32 h-32"
                 fallbackInitial={playerData.name.charAt(0).toUpperCase()}
