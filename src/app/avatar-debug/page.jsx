@@ -8,6 +8,27 @@ export default function AvatarDebugPage() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiLogs, setApiLogs] = useState([]);
+  const [envData, setEnvData] = useState(null);
+  const [loadingEnv, setLoadingEnv] = useState(true);
+
+  // Buscar dados de environment
+  useEffect(() => {
+    const fetchEnvData = async () => {
+      try {
+        const response = await fetch('/api/debug/env', {cache: 'no-store'});
+        if (response.ok) {
+          const data = await response.json();
+          setEnvData(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar env data:', error);
+      } finally {
+        setLoadingEnv(false);
+      }
+    };
+    
+    fetchEnvData();
+  }, []);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -52,6 +73,58 @@ export default function AvatarDebugPage() {
       <div className="max-w-4xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">🔧 Debug de Avatares Steam</h1>
         
+        {/* Environment Status */}
+        <div className="bg-yellow-50 p-4 rounded-lg mb-6">
+          <h2 className="text-lg font-semibold mb-3">🔧 Environment Variables</h2>
+          {loadingEnv ? (
+            <div className="text-gray-500">Carregando...</div>
+          ) : envData ? (
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-medium text-gray-700 mb-1">Environment:</h3>
+                  <div className="font-mono space-y-1">
+                    <div>NODE_ENV: {envData.environment.NODE_ENV}</div>
+                    <div>VERCEL: {envData.environment.VERCEL}</div>
+                    <div>VERCEL_ENV: {envData.environment.VERCEL_ENV || 'N/A'}</div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-700 mb-1">Steam API:</h3>
+                  <div className="font-mono space-y-1">
+                    <div className={envData.environment.STEAM_API_URL === 'DEFINED' ? 'text-green-600' : 'text-red-600'}>
+                      URL: {envData.environment.STEAM_API_URL}
+                    </div>
+                    <div className={envData.environment.STEAM_API_KEY === 'DEFINED' ? 'text-green-600' : 'text-red-600'}>
+                      KEY: {envData.environment.STEAM_API_KEY} ({envData.environment.STEAM_API_KEY_LENGTH} chars)
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {envData.steamApiTest && (
+                <div className="mt-4 p-3 bg-gray-100 rounded">
+                  <h3 className="font-medium text-gray-700 mb-2">Steam API Test:</h3>
+                  <div className="font-mono text-sm">
+                    {envData.steamApiTest.error ? (
+                      <div className="text-red-600">❌ Erro: {envData.steamApiTest.error}</div>
+                    ) : (
+                      <div className={envData.steamApiTest.ok ? 'text-green-600' : 'text-red-600'}>
+                        Status: {envData.steamApiTest.status} - {envData.steamApiTest.ok ? '✅ OK' : '❌ Falha'}
+                        {envData.steamApiTest.hasPlayers && (
+                          <div>Players encontrados: {envData.steamApiTest.playersCount}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-red-500">Erro ao carregar dados de environment</div>
+          )}
+        </div>
+
         {/* Status da API */}
         <div className="bg-gray-50 p-4 rounded-lg mb-6">
           <h2 className="text-lg font-semibold mb-3">📊 Log da API /api/players</h2>
@@ -154,6 +227,11 @@ export default function AvatarDebugPage() {
         <div className="mt-6 space-y-2 text-sm">
           <h3 className="font-semibold">🔗 URLs de Teste:</h3>
           <div className="space-y-1 text-blue-600">
+            <div>
+              <a href="/api/debug/env" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                /api/debug/env - Environment variables e Steam API test
+              </a>
+            </div>
             <div>
               <a href="/api/players" target="_blank" rel="noopener noreferrer" className="hover:underline">
                 /api/players - API de jogadores
