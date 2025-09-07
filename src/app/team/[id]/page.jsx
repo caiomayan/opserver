@@ -6,7 +6,7 @@ import ReactCountryFlag from "react-country-flag";
 import LogoHeader from '../../../components/LogoHeader';
 import Layout from '../../../components/Layout';
 import LoadingScreen from '../../../components/LoadingScreen';
-import SteamAvatar from '../../../components/SteamAvatar';
+import SimpleSteamAvatar from '../../../components/SimpleSteamAvatar';
 import { isValidLevel, calculateAge } from '../../../utils/playerUtils';
 import { getRoleIcon } from '../../../utils/playerRoles';
 
@@ -99,7 +99,7 @@ export default function TeamPage({ params }) {
                   className="group relative transition-transform duration-200 ease-in-out hover:scale-110"
                 >
                   {/* Player Circle */}
-                  <SteamAvatar 
+                  <SimpleSteamAvatar 
                     src={player.avatar}
                     alt={`Avatar de ${player.name}`}
                     size="w-26 h-26"

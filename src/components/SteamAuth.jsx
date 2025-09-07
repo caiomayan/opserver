@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { getMembershipName, getMembershipColor, getMembershipBgColor } from '../utils/membershipTypes';
-import SteamAvatar from './SteamAvatar';
+import SimpleSteamAvatar from './SimpleSteamAvatar';
 
 const SteamAuth = () => {
   const [user, setUser] = useState(null);
@@ -161,7 +161,7 @@ const SteamAuth = () => {
             onClick={() => setShowBox((v) => !v)}
             className="flex items-center gap-2 focus:outline-none"
           >
-            <SteamAvatar 
+            <SimpleSteamAvatar 
               src={avatarUrl} 
               alt="Avatar" 
               size="w-9 h-9"

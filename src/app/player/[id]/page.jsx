@@ -9,7 +9,7 @@ import LoadingScreen from '../../../components/LoadingScreen';
 import { calculateAge, getProfileUrls, isValidLevel } from '../../../utils/playerUtils';
 import { getRoleIcon, getRoleName } from '../../../utils/playerRoles';
 import { getHudColorName } from '../../../utils/hudColors';
-import SteamAvatar from '../../../components/SteamAvatar';
+import SimpleSteamAvatar from '../../../components/SimpleSteamAvatar';
 import { useFaceitData } from '../../../hooks/useFaceitData';
 
 export default function PlayerPage({ params }) {
@@ -171,9 +171,10 @@ export default function PlayerPage({ params }) {
           )}
           {/* Avatar e informações principais */}
           <div className="text-center mb-8">
-              <SteamAvatar 
+              <SimpleSteamAvatar 
                 src={playerData.avatar}
                 alt={`Avatar de ${playerData.name}`}
+                size="w-32 h-32"
                 fallbackInitial={playerData.name.charAt(0).toUpperCase()}
                 className="shadow-lg mx-auto mb-4"
               />

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import SteamAvatar from '../../components/SteamAvatar';
+import SimpleSteamAvatar from '../../components/SimpleSteamAvatar';
 
 const ProSettingsPage = () => {
   const [players, setPlayers] = useState([]);
@@ -37,7 +37,7 @@ const ProSettingsPage = () => {
               href={`/player/${player.steamid64}`}
               className="group relative transition-transform duration-200 ease-in-out hover:scale-110"
             >
-              <SteamAvatar 
+              <SimpleSteamAvatar 
                 src={player.avatar}
                 alt={`Avatar de ${player.name}`}
                 fallbackInitial={player.name.charAt(0).toUpperCase()}
