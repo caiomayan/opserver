@@ -14,7 +14,7 @@ const Header = () => {
           <Link href="/" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Início</Link>
           <Link href="/teams" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Times</Link>
           <Link href="#" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Jogar</Link>
-          <span className="text-gray-400 font-semibold cursor-not-allowed">Inventário</span>
+          <Link href="https://inventory.cstrike.app/" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Inventário</Link>
           <Link href="#" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Ranking</Link>
           <Link href="/prosettings" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">ProSettings</Link>
         </div>
