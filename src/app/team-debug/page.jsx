@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Footer from '@/components/Footer';
 
 export default function TeamDebugPage() {
   const [logs, setLogs] = useState([]);
@@ -71,6 +72,7 @@ export default function TeamDebugPage() {
           ))}
         </div>
       )}
+      <Footer />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import ReactCountryFlag from 'react-country-flag';
+import CountryFlag from './CountryFlag';
 import SteamAuth from './SteamAuth';
 
 const LogoHeader = ({ 
@@ -21,7 +21,7 @@ const LogoHeader = ({
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       // Show logo when at top (scrollTop <= 50px), hide when scrolling down
-      setIsVisible(scrollTop <= 50);
+      setIsVisible(scrollTop <= 1);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -57,7 +57,7 @@ const LogoHeader = ({
               <img 
                 src={centerLogo.src || "/teams/unknown.svg"} 
                 alt={centerLogo.alt || "Logo"}
-                className="mx-auto object-contain" 
+                className={`mx-auto object-contain transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
                 width="40" 
                 height="40" 
               />
@@ -65,7 +65,7 @@ const LogoHeader = ({
               <img 
                 src="/teams/unknown.svg" 
                 alt="Unknown Team"
-                className="mx-auto object-contain" 
+                className={`mx-auto object-contain transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
                 width="40" 
                 height="40" 
               />
@@ -75,10 +75,10 @@ const LogoHeader = ({
             const code = typeof centerCountry === 'string' ? centerCountry.trim().toUpperCase() : '';
             return /^[A-Z]{2}$/.test(code) ? (
               <div className="mt-1">
-                <ReactCountryFlag 
+                <CountryFlag 
                   countryCode={code}
-                  svg 
-                  style={{width: '0.8em', height: '0.8em'}} 
+                  size="w-3 h-2"
+                  flagSize={20}
                 />
               </div>
             ) : null;

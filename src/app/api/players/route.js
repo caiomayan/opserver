@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '../../../lib/supabase';
 
+// Updated API to handle single player requests
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const teamid = searchParams.get('teamid');
   const playerIds = searchParams.get('playerIds')?.split(',') || null;
+  const id = searchParams.get('id'); // Single player ID
 
-  console.log('🔍 API Players chamada:', { teamid, playerIds });
+  console.log('🔍 API Players chamada:', { teamid, playerIds, id });
 
   let query = supabase.from('players').select('*');
-  if (teamid) {
+  if (id) {
+    console.log('📊 Buscando player único por ID:', id);
+    query = supabase.from('players').select('*').eq('steamid64', id);
+  } else if (teamid) {
     console.log('📊 Buscando players do time:', teamid);
     query = supabase.from('players').select('*').eq('teamid', teamid);
   } else if (playerIds) {
@@ -87,6 +92,28 @@ export async function GET(request) {
     );
     
     console.log(`✅ Retornando ${playersWithData.length} players processados`);
+    
+    // If requesting a single player by ID, return specific format
+    if (id && playersWithData.length > 0) {
+      const player = playersWithData[0];
+      
+      // Get team data if player has teamid
+      let team = null;
+      if (player.teamid) {
+        const { data: teamData, error: teamError } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('id', player.teamid)
+          .single();
+        team = teamError ? null : teamData;
+      }
+      
+      return NextResponse.json({
+        player: player,
+        config: player.configs,
+        team: team
+      });
+    }
     
     return NextResponse.json({ data: playersWithData });
   } catch (error) {

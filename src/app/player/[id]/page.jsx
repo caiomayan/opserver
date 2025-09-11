@@ -1,132 +1,139 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import ReactCountryFlag from "react-country-flag";
-import LogoHeader from '../../../components/LogoHeader';
-import Layout from '../../../components/Layout';
-import LoadingScreen from '../../../components/LoadingScreen';
-import { calculateAge, getProfileUrls, isValidLevel } from '../../../utils/playerUtils';
-import { getRoleIcon, getRoleName } from '../../../utils/playerRoles';
-import { getHudColorName } from '../../../utils/hudColors';
-import SimpleSteamAvatar from '../../../components/SimpleSteamAvatar';
-import { useFaceitData } from '../../../hooks/useFaceitData';
+import LoadingScreen from '@/components/LoadingScreen';
+import Layout from '@/components/Layout';
+import LogoHeader from '@/components/LogoHeader';
+import SimpleSteamAvatar from '@/components/SimpleSteamAvatar';
+import CountryFlag, { CountryName } from '@/components/CountryFlag';
+import { getRoleName, getRoleIcon } from '@/utils/playerRoles';
+import { calculateAge, getProfileUrls, isValidLevel } from '@/utils/playerUtils';
+import { useFaceitData } from '@/hooks/useFaceitData';
+import { getHudColorName } from '@/utils/hudColors';
 
-export default function PlayerPage({ params }) {
+export default function PlayerPage() {
+  const params = useParams();
   const [playerData, setPlayerData] = useState(null);
-  const [teamData, setTeamData] = useState(null);
   const [playerConfigs, setPlayerConfigs] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { id: playerId } = React.use(params);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
-  // Buscar dados da FACEIT - deve ser chamado sempre, antes de qualquer condição
-  const { faceitData, loading: faceitLoading } = useFaceitData(playerData?.steamid64);
-
-  // Helper function to format values, especially booleans
-  const formatValue = (value, fieldType = null) => {
-    if (fieldType === 'hud_color') {
-      return getHudColorName(value);
-    }
-    if (typeof value === 'boolean') {
-      return value ? 'Enabled' : 'Disabled';
-    }
-    return value;
-  };
-
-  // Helper function to check if an object has any non-null values
-  const hasValidValues = (obj, fields) => {
-    if (!obj) return false;
-    return fields.some(field => {
-      const value = field.includes('.') ? 
-        field.split('.').reduce((o, key) => o?.[key], obj) : 
-        obj[field];
-      return value !== null && value !== undefined;
-    });
-  };
-
-  // Check if this is the current user's profile
-  const isOwnProfile = currentUser && playerData && currentUser.id === playerData.steamid64;
-
-  // Format last updated date
-  const formatLastUpdated = (timestamp) => {
-    if (!timestamp) return 'Data não disponível';
-    
-    try {
-      const date = new Date(timestamp);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `Última atualização: ${day}/${month}/${year}`;
-    } catch (error) {
-      return 'Data inválida';
-    }
-  };
+  const { faceitData, loading: faceitLoading, error: faceitError } = useFaceitData(playerData?.steamid64);
 
   useEffect(() => {
-    if (!playerId) return;
-    
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch current user data (if logged in)
-        try {
-          const userRes = await fetch('/api/auth/user', { 
-            credentials: 'include',
-            cache: 'no-store'
-          });
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            setCurrentUser(userData);
-          }
-        } catch (userError) {
-          // User not logged in, continue without user data
-          console.log('User not logged in');
-        }
+    if (playerData?.steamid64) {
+      console.log('🎮 Player Steam ID para FACEIT:', playerData.steamid64);
+    }
+  }, [playerData?.steamid64]);
 
-        // Fetch player data
-        const playersRes = await fetch(`/api/players?playerIds=${playerId}`, {cache: 'no-store'});
-        if (!playersRes.ok) throw new Error('Erro ao carregar jogador');
-        const playersResJson = await playersRes.json();
-        const playersArr = playersResJson.data || [];
-        const player = playersArr.find(player => player.steamid64 === playerId);
-        setPlayerData(player);
-        
-        // configs já vem junto do player
-        setPlayerConfigs(player?.configs || null);
-        
-        if (player?.teamid) {
-          const teamsRes = await fetch('/api/teams', {cache: 'no-store'});
-          if (teamsRes.ok) {
-            const teamsResJson = await teamsRes.json();
-            const team = (teamsResJson.data || []).find(team => team.id === player.teamid);
-            setTeamData(team);
-          }
+  useEffect(() => {
+    console.log('🎮 FACEIT Data na página:', faceitData);
+  }, [faceitData]);
+
+  useEffect(() => {
+    const fetchPlayerData = async () => {
+      try {
+        const response = await fetch(`/api/players?id=${params.id}`);
+        if (!response.ok) {
+          throw new Error('Jogador não encontrado');
         }
-      } catch (error) {
-        setError(error.message);
+        const data = await response.json();
+        setPlayerData(data.player);
+        setPlayerConfigs(data.config);
+        setTeamData(data.team);
+
+        // Check if it's the user's own profile
+        const userResponse = await fetch('/api/auth/user', {
+          credentials: 'include'
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setIsOwnProfile(userData.id === parseInt(params.id));
+        }
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchData();
-  }, [playerId]);
 
-  // Exibe LoadingScreen enquanto carrega
-  if (loading) {
-    return (
-      <LoadingScreen loadingDuration={2200}>
-        <LogoHeader />
-      </LoadingScreen>
+    if (params.id) {
+      fetchPlayerData();
+    }
+  }, [params.id]);
+
+  const formatValue = (value, type = null) => {
+    if (value === null || value === undefined || value === '') {
+      return 'N/A';
+    }
+    
+    if (type === 'hud_color') {
+      return getHudColorName(value);
+    }
+    
+    return String(value);
+  };
+
+  const formatLastUpdated = (dateString) => {
+    if (!dateString) return 'Data não disponível';
+    
+    try {
+      const date = new Date(dateString);
+      return `Atualizado em ${date.toLocaleDateString('pt-BR')} às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const hasValidValues = (obj, fields) => {
+    if (!obj || typeof obj !== 'object') return false;
+    return fields.some(field => {
+      if (field.includes('.')) {
+        const [parent, child] = field.split('.');
+        return obj[parent] && obj[parent][child] !== null && obj[parent][child] !== undefined && obj[parent][child] !== '';
+      }
+      return obj[field] !== null && obj[field] !== undefined && obj[field] !== '';
+    });
+  };
+
+  // Verificar se há alguma configuração válida para determinar layout
+  const hasAnyConfigs = () => {
+    if (!playerConfigs) return false;
+    
+    // Verificar configurações básicas
+    const hasBasicConfigs = (
+      (playerConfigs.sensitivity !== null && playerConfigs.sensitivity !== undefined) ||
+      (playerConfigs.dpi !== null && playerConfigs.dpi !== undefined) ||
+      (playerConfigs.edpi !== null && playerConfigs.edpi !== undefined) ||
+      (playerConfigs.hz !== null && playerConfigs.hz !== undefined) ||
+      (playerConfigs.crosshair_code && playerConfigs.crosshair_code.trim() !== '') ||
+      (playerConfigs.skins && typeof playerConfigs.skins === 'string' && playerConfigs.skins.trim() !== '')
     );
+
+    if (hasBasicConfigs) return true;
+
+    // Verificar configurações aninhadas
+    const hasNestedConfigs = (
+      hasValidValues(playerConfigs.mouse_settings, ['polling_rate', 'windows_sens', 'zoom_sensitivity']) ||
+      hasValidValues(playerConfigs.video_settings, ['resolution', 'brightness']) ||
+      hasValidValues(playerConfigs.viewmodel_settings, ['viewmodel_fov', 'viewmodel_offset_x', 'viewmodel_offset_y', 'viewmodel_offset_z', 'viewmodel_presetpos', 'viewmodel']) ||
+      hasValidValues(playerConfigs.hud_settings, ['hud_scaling', 'cl_hud_color', 'cl_radar_scale', 'cl_hud_radar_scale', 'cl_radar_always_centered', 'cl_radar_rotate', 'cl_radar_square_with_scoreboard']) ||
+      hasValidValues(playerConfigs.pc_specs, ['cpu', 'gpu.gpu_card', 'gpu.digital_vibrance']) ||
+      (playerConfigs.gear_specs && typeof playerConfigs.gear_specs === 'object' && Object.values(playerConfigs.gear_specs).some(value => value !== null && value !== undefined && value !== ''))
+    );
+
+    return hasNestedConfigs;
+  };
+
+  if (loading) {
+    return <LoadingScreen loadingDuration={2200} />;
   }
 
-  // Se não encontrar o jogador após carregar
-  if (!playerData) {
+  if (error || !playerData) {
     return (
       <LogoHeader>
         <div className="flex-1 flex items-center justify-center p-4">
@@ -163,110 +170,145 @@ export default function PlayerPage({ params }) {
         footerText={teamData?.name ? teamData.name.toUpperCase() : "Development"}
         fullPage={true}
       >
-        <div className="w-full max-w-2xl mx-auto px-4 pt-28 pb-24">
-          {error && (
-            <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">
+        {error && (
+          <div className="w-full max-w-6xl mx-auto px-4 pt-28 mb-4">
+            <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">
               {String(error)}
             </div>
-          )}
-          {/* Avatar e informações principais */}
-          <div className="text-center mb-8">
-              <SimpleSteamAvatar 
-                src={playerData.avatar}
-                alt={`Avatar de ${playerData.name}`}
-                size="w-32 h-32"
-                fallbackInitial={playerData.name.charAt(0).toUpperCase()}
-                className="shadow-lg mx-auto mb-4"
-              />
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
-                <ReactCountryFlag countryCode={playerData.country} svg style={{width: '1.5em', height: '1.5em'}} />
-                {isOwnProfile && (
-                  <img 
-                    src="/others/aero.png" 
-                    alt="Seu Perfil" 
-                    className="w-5 h-5" 
-                    title="Você"
-                  />
-                )}
-                {/* Ícone de informação com tooltip da última atualização */}
-                <div className="relative group">
-                  <svg 
-                    className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" 
-                    fill="currentColor" 
-                    viewBox="0 0 20 20"
-                    aria-label="Informações de atualização"
-                  >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
-                      clipRule="evenodd" 
+          </div>
+        )}
+        
+        <div className={`w-full max-w-6xl mx-auto px-4 ${error ? 'pt-4' : 'pt-28'} pb-24 ${!hasAnyConfigs() ? 'min-h-screen flex items-center' : ''}`}>
+          {/* Layout principal - dinâmico baseado em configurações */}
+          <div className={`${hasAnyConfigs() 
+            ? 'grid grid-cols-1 lg:grid-cols-5 gap-8' 
+            : 'flex justify-center w-full'
+          }`}>
+            
+            {/* Coluna principal - informações do jogador */}
+            <div className={hasAnyConfigs() ? 'lg:col-span-2' : 'w-full max-w-2xl'}>
+              {/* Avatar e informações principais */}
+              <div className="text-center mb-6">
+                <SimpleSteamAvatar 
+                  src={playerData.avatar}
+                  alt={`Avatar de ${playerData.name}`}
+                  size="w-32 h-32"
+                  fallbackInitial={playerData.name.charAt(0).toUpperCase()}
+                  className="shadow-lg mx-auto mb-4"
+                />
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
+                  <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={40} />
+                  {isOwnProfile && (
+                    <img 
+                      src="/others/aero.png" 
+                      alt="Seu Perfil" 
+                      className="w-5 h-5" 
+                      title="Você"
                     />
-                  </svg>
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-1.5 py-0.5 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    {formatLastUpdated(playerData.updated_at)}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
+                  )}
+                  {/* Ícone de informação com tooltip da última atualização */}
+                  <div className="relative group">
+                    <svg 
+                      className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" 
+                      fill="currentColor" 
+                      viewBox="0 0 20 20"
+                      aria-label="Informações de atualização"
+                    >
+                      <path 
+                        fillRule="evenodd" 
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                        clipRule="evenodd" 
+                      />
+                    </svg>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-1.5 py-0.5 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      {formatLastUpdated(playerData.updated_at)}
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Role e links */}
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src={getRoleIcon(playerData.idrole)} 
+                    title={getRoleName(playerData.idrole)}
+                    alt="Player Role"
+                    className="w-6 h-6"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  {profileUrls.steam && (
+                    <a 
+                      href={profileUrls.steam}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
+                    </a>
+                  )}
+                  {isOwnProfile && (
+                    <Link 
+                      href="/profile"
+                      className="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                      </svg>
+                      Editar Perfil
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+
+
+
+
+
+
+
+
+
+
+
+              {/* Descrição remodelada, integrada ao design do projeto */}
+              <div className="mb-8">
+                <div className="w-full flex justify-center">
+                  <div className="max-w-2xl w-full bg-white/80 border border-gray-100 shadow-sm rounded-xl px-6 py-5">
+                    <p className="text-center text-gray-700 text-lg font-normal leading-relaxed tracking-tight">
+                      {teamData ? (
+                        <>
+                          <span className="font-bold text-black">{playerData.name}</span> é {getRoleName(playerData.idrole).toLowerCase()} da{' '}
+                          <a href={`/team/${teamData.id}`} className="text-gray-800 hover:underline transition-colors font-normal">{teamData.name}</a>.
+                          {playerData.benched === true ? " Atualmente está no banco de reservas." : ""}
+                          {age ? ` Tem ${age} anos.` : ""}
+                          {isValidLevel(playerData.level) ? ` Possui nível ${playerData.level} no GamersClub.` : ""}
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-bold text-black">{playerData.name}</span> atua como {getRoleName(playerData.idrole).toLowerCase()}.
+                          {age ? ` Tem ${age} anos.` : ""}
+                          {isValidLevel(playerData.level) ? ` Possui nível ${playerData.level} no GamersClub.` : ""}
+                        </>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
-              {/* Ícone da role */}
-              <div className="flex justify-center mb-4">
-                <img 
-                  src={getRoleIcon(playerData.idrole)} 
-                  title={getRoleName(playerData.idrole)}
-                  alt="Player Role"
-                  className="w-6 h-6"
-                />
-              </div>
-              <div className="flex items-center justify-center gap-4 mb-8">
-                {profileUrls.steam && (
-                  <a 
-                    href={profileUrls.steam}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
-                  </a>
-                )}
-              </div>
-            {/* ...sem botões de admin... */}
-          </div>
 
-          {/* Informações do jogador - caixas empilhadas verticalmente */}
-          <div className="flex flex-col gap-6">
-              <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">Descrição</h2>
-                <div className="flex flex-col gap-3">
-                  <p className="text-gray-600 leading-relaxed">
-                    {teamData 
-                      ? (
-                          <>
-                            <span className="text-gray-800 font-medium">{playerData.name}</span> atualmente está no time da <span className="text-gray-800 font-medium">{teamData.name}</span>
-                            {playerData.benched === true && (
-                              <span className="text-gray-500 text-sm"> (banco)</span>
-                            )}, jogando como <span className="text-gray-800 font-medium">{getRoleName(playerData.idrole)}</span>.
-                          </>
-                        )
-                      : (
-                          <>
-                            <span className="text-gray-800 font-medium">{playerData.name}</span> atualmente está sem time, e joga como <span className="text-gray-800 font-medium">{getRoleName(playerData.idrole)}</span>.
-                          </>
-                        )
-                    }
-                  </p>
-                </div>
-              </div>
               {/* Informações Pessoais */}
-              <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 p-5 rounded-lg">
                 <h2 className="text-lg font-semibold text-gray-800 mb-3">Informações</h2>
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between items-center gap-x-2">
                     <span className="text-gray-600 min-w-[90px] truncate">País</span>
                     <div className="flex items-center gap-2">
-                      <ReactCountryFlag countryCode={playerData.country} svg style={{width: '1em', height: '1em'}} />
-                      <span className="font-medium text-gray-800">{playerData.country}</span>
+                      <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={20} />
+                      <CountryName countryCode={playerData.country} className="font-medium text-gray-800" />
                     </div>
                   </div>
                   {age && (
@@ -284,7 +326,20 @@ export default function PlayerPage({ params }) {
                       </div>
                     </>
                   )}
-                  {faceitData && faceitData.level > 0 && (
+                  {/* FACEIT Information */}
+                  {faceitLoading && (
+                    <div className="flex justify-between items-center gap-x-2">
+                      <span className="text-gray-600 min-w-[90px] truncate">FACEIT</span>
+                      <span className="text-xs text-gray-500">Carregando...</span>
+                    </div>
+                  )}
+                  {!faceitLoading && faceitError && (
+                    <div className="flex justify-between items-center gap-x-2">
+                      <span className="text-gray-600 min-w-[90px] truncate">FACEIT</span>
+                      <span className="text-xs text-red-500">Erro ao carregar</span>
+                    </div>
+                  )}
+                  {!faceitLoading && !faceitError && faceitData && faceitData.level > 0 && (
                     <div className="flex justify-between items-center gap-x-2">
                       <span className="text-gray-600 min-w-[90px] truncate">FACEIT Level</span>
                       <div className="flex items-center gap-2">
@@ -293,15 +348,32 @@ export default function PlayerPage({ params }) {
                       </div>
                     </div>
                   )}
+                  {!faceitLoading && !faceitError && faceitData && faceitData.level === 0 && (
+                    <div className="flex justify-between items-center gap-x-2">
+                      <span className="text-gray-600 min-w-[90px] truncate">FACEIT</span>
+                      <span className="text-xs text-gray-500">Sem ranking CS2</span>
+                    </div>
+                  )}
+                  {!faceitLoading && !faceitError && !faceitData && (
+                    <div className="flex justify-between items-center gap-x-2">
+                      <span className="text-gray-600 min-w-[90px] truncate">FACEIT</span>
+                      <span className="text-xs text-gray-500">Conta não encontrada</span>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+
+            {/* Coluna direita - Configurações técnicas - só mostra se há configurações */}
+            {hasAnyConfigs() && (
+              <div className="lg:col-span-3">
 
               {/* Configurações de Mouse */}
               {((playerConfigs?.sensitivity !== null && playerConfigs?.sensitivity !== undefined) || 
                 (playerConfigs?.dpi !== null && playerConfigs?.dpi !== undefined) || 
                 (playerConfigs?.edpi !== null && playerConfigs?.edpi !== undefined) || 
                 hasValidValues(playerConfigs?.mouse_settings, ['polling_rate', 'windows_sens', 'zoom_sensitivity'])) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Mouse</h2>
                   <div className="space-y-3">
                     {(playerConfigs?.sensitivity !== null && playerConfigs?.sensitivity !== undefined) && (
@@ -352,7 +424,7 @@ export default function PlayerPage({ params }) {
               {(hasValidValues(playerConfigs?.video_settings, ['resolution', 'brightness']) || 
                 (playerConfigs?.hz !== null && playerConfigs?.hz !== undefined) || 
                 (playerConfigs?.pc_specs?.gpu?.digital_vibrance !== null && playerConfigs?.pc_specs?.gpu?.digital_vibrance !== undefined)) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Vídeo</h2>
                   <div className="space-y-2">
                     {(playerConfigs?.video_settings?.resolution !== null && playerConfigs?.video_settings?.resolution !== undefined) && (
@@ -379,14 +451,13 @@ export default function PlayerPage({ params }) {
                         <span className="font-medium text-gray-800">{formatValue(playerConfigs.pc_specs.gpu.digital_vibrance)}%</span>
                       </div>
                     )}
-                    {/* Adicione outros campos relevantes de video_settings aqui */}
                   </div>
                 </div>
               )}
 
               {/* Viewmodel */}
               {hasValidValues(playerConfigs?.viewmodel_settings, ['viewmodel_fov', 'viewmodel_offset_x', 'viewmodel_offset_y', 'viewmodel_offset_z', 'viewmodel_presetpos', 'viewmodel']) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Viewmodel</h2>
                   <div className="space-y-2">
                     {(playerConfigs.viewmodel_settings.viewmodel_fov !== null && playerConfigs.viewmodel_settings.viewmodel_fov !== undefined) && (
@@ -425,14 +496,13 @@ export default function PlayerPage({ params }) {
                         <span className="font-medium text-gray-800">{formatValue(playerConfigs.viewmodel_settings.viewmodel)}</span>
                       </div>
                     )}
-                    {/* Adicione outros campos relevantes de viewmodel_settings aqui */}
                   </div>
                 </div>
               )}
 
               {/* HUD */}
               {hasValidValues(playerConfigs?.hud_settings, ['hud_scaling', 'cl_hud_color', 'cl_radar_scale', 'cl_hud_radar_scale', 'cl_radar_always_centered', 'cl_radar_rotate', 'cl_radar_square_with_scoreboard']) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">HUD</h2>
                   <div className="space-y-2">
                     {(playerConfigs.hud_settings.hud_scaling !== null && playerConfigs.hud_settings.hud_scaling !== undefined) && (
@@ -477,27 +547,26 @@ export default function PlayerPage({ params }) {
                         <span className="font-medium text-gray-800">{formatValue(playerConfigs.hud_settings.cl_radar_square_with_scoreboard)}</span>
                       </div>
                     )}
-                    {/* Adicione outros campos relevantes de hud_settings aqui */}
                   </div>
                 </div>
               )}
 
               {/* Crosshair */}
               {playerConfigs?.crosshair_code && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Crosshair</h2>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center gap-x-2">
                       <span className="text-gray-600 min-w-[90px] truncate">Código</span>
-                      <span className="font-medium text-gray-800">{playerConfigs.crosshair_code}</span>
+                      <span className="font-medium text-gray-800 text-xs break-all">{playerConfigs.crosshair_code}</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Skins */}
-              {playerConfigs?.skins && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+              {playerConfigs?.skins && typeof playerConfigs.skins === 'string' && playerConfigs.skins.trim() !== '' && (
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Skins</h2>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center gap-x-2">
@@ -509,8 +578,8 @@ export default function PlayerPage({ params }) {
               )}
 
               {/* Gear Specs */}
-              {(playerConfigs?.gear_specs && Object.values(playerConfigs.gear_specs).some(value => value !== null && value !== undefined && value !== '')) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+              {(playerConfigs?.gear_specs && typeof playerConfigs.gear_specs === 'object' && Object.values(playerConfigs.gear_specs).some(value => value !== null && value !== undefined && value !== '')) && (
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Equipamentos</h2>
                   <div className="space-y-2">
                     {Object.entries(playerConfigs.gear_specs).map(([key, value]) => (
@@ -527,7 +596,7 @@ export default function PlayerPage({ params }) {
 
               {/* PC Specs */}
               {hasValidValues(playerConfigs?.pc_specs, ['cpu', 'gpu.gpu_card']) && (
-                <div className="bg-gray-50 p-5 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">PC</h2>
                   <div className="space-y-2">
                     {(playerConfigs.pc_specs.cpu !== null && playerConfigs.pc_specs.cpu !== undefined) && (
@@ -546,7 +615,9 @@ export default function PlayerPage({ params }) {
                 </div>
               )}
             </div>
+            )}
           </div>
+        </div>
       </Layout>
     </LoadingScreen>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ReactCountryFlag from "react-country-flag";
+import CountryFlag from '../../components/CountryFlag';
 import LogoHeader from '../../components/LogoHeader';
 import Layout from '../../components/Layout';
 import LoadingScreen from '../../components/LoadingScreen';
@@ -70,10 +70,10 @@ export default function TeamsPage() {
                   <div className="text-center p-0.5">
                     <div className="flex items-center justify-center gap-1.5 font-medium text-gray-900 text-sm leading-tight">
                       <span>{team.name}</span>
-                      <ReactCountryFlag 
+                      <CountryFlag 
                         countryCode={team.country} 
-                        svg 
-                        style={{width: '0.9em', height: '0.9em'}} 
+                        size="w-6 h-4"
+                        flagSize={20}
                       />
                     </div>
                   </div>

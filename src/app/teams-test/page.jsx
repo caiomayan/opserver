@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Footer from '../../components/Footer';
 
 export default function TeamsTestPage() {
   const [status, setStatus] = useState('Loading...');
@@ -77,6 +78,8 @@ export default function TeamsTestPage() {
         {teams.length > 0 && <p>✅ Teams API returning data</p>}
         {error && <p>❌ Error occurred: {error}</p>}
       </div>
+      
+      <Footer text="TEST PAGE" />
     </div>
   );
 }

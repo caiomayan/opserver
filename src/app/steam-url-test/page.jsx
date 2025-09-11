@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import SteamAvatar from '../../components/SteamAvatar';
 import { normalizeSteamAvatarUrl } from '../../utils/steamAvatar';
+import Footer from '../../components/Footer';
 
 export default function SteamUrlTest() {
   const [testUrl, setTestUrl] = useState('https://avatars.steamstatic.com/c6054045a49a9c65c2e1d2d5b8c05387934e940a_medium.jpg');
@@ -213,6 +214,8 @@ export default function SteamUrlTest() {
           </div>
         </div>
       </div>
+      
+      <Footer text="STEAM TEST" />
     </div>
   );
 }

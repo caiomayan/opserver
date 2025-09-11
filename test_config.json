@@ -1,0 +1,22 @@
+{
+  "sensitivity": 1.8,
+  "dpi": 800,
+  "hz": 165,
+  "mouse_settings": {
+    "mouse": "Logitech G Pro X",
+    "polling_rate": 1000
+  },
+  "video_settings": {
+    "resolution": "1280x960",
+    "fps_max": 300
+  },
+  "hud_settings": {
+    "hud_scale": 0.8,
+    "radar_scale": 0.7
+  },
+  "crosshair_code": "CSGO-FINAL-CROSSHAIR-CODE",
+  "gear_specs": {
+    "mouse": "Logitech G Pro X Superlight",
+    "mousepad": "SteelSeries QcK Heavy"
+  }
+}

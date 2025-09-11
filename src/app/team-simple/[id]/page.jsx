@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Footer from '@/components/Footer';
 
 export default function TeamSimplePage({ params }) {
   const [players, setPlayers] = useState([]);
@@ -59,6 +60,7 @@ export default function TeamSimplePage({ params }) {
           {players.length === 0 && <p>Nenhum player encontrado</p>}
         </>
       )}
+      <Footer />
     </div>
   );
 }

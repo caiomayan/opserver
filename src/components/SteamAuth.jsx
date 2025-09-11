@@ -192,6 +192,17 @@ const SteamAuth = () => {
                   </div>
                 </div>
               </div>
+              <div className="space-y-2 mb-3">
+                <a
+                  href={`/player/${user.id}`}
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                  </svg>
+                  Meu Perfil
+                </a>
+              </div>
               <button
                 onClick={handleLogout}
                 className="w-full bg-red-500 text-white py-1.5 rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold"

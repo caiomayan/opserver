@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import ReactCountryFlag from "react-country-flag";
+import CountryFlag from './CountryFlag';
 
 const NavigationCard = ({ 
   href, 
@@ -41,7 +41,7 @@ const NavigationCard = ({
           <div className="flex items-center justify-center gap-2 mb-2">
             <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
             {country && (
-              <ReactCountryFlag countryCode={country} svg style={{width: '1.2em', height: '1.2em'}} />
+              <CountryFlag countryCode={country} size="w-6 h-4" flagSize={20} />
             )}
           </div>
           

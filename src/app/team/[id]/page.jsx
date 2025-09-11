@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ReactCountryFlag from "react-country-flag";
+import CountryFlag from '../../../components/CountryFlag';
 import LogoHeader from '../../../components/LogoHeader';
 import Layout from '../../../components/Layout';
 import LoadingScreen from '../../../components/LoadingScreen';
@@ -125,23 +125,29 @@ export default function TeamPage({ params }) {
                   {/* Hover Card - Design equilibrado */}
                   <div className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 
                                 bg-white border border-gray-200 rounded-lg shadow-md
-                                px-3 py-2 min-w-[5rem] max-w-[9rem]
+                                px-3 py-2 inline-block
                                 opacity-0 group-hover:opacity-100 
                                 transition-opacity duration-200 pointer-events-none z-10">
-                    <div className="text-center space-y-1">
-                      <div className="flex items-center justify-center gap-1.5 font-medium text-gray-900 text-sm leading-tight">
+                    <div className="text-center space-y-1.5">
+                      {/* Nome do player */}
+                      <div className="flex items-center justify-center gap-1 font-medium text-gray-900 text-sm leading-tight whitespace-nowrap">
                         <span>{player.name}</span>
                         {player.benched === true && (
-                          <span className="text-gray-400 text-xs font-normal">B</span>
+                          <span className="text-gray-400 text-xs font-normal flex-shrink-0">B</span>
                         )}
-                        <ReactCountryFlag 
+                      </div>
+                      
+                      {/* Bandeira em linha separada */}
+                      <div className="flex justify-center">
+                        <CountryFlag 
                           countryCode={player.country} 
-                          svg 
-                          style={{width: '0.9em', height: '0.9em'}} 
+                          size="w-4 h-3"
+                          flagSize={20}
                         />
                       </div>
+                      
                       {/* Ícone da role */}
-                      <div className="flex justify-center mb-1">
+                      <div className="flex justify-center">
                         <img 
                           src={getRoleIcon(player.idrole)} 
                           alt="Role"
