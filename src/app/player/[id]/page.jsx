@@ -21,6 +21,8 @@ export default function PlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  // Feedback de cópia do crosshair
+  const [copied, setCopied] = useState(false);
 
   const { faceitData, loading: faceitLoading, error: faceitError } = useFaceitData(playerData?.steamid64);
 
@@ -52,7 +54,8 @@ export default function PlayerPage() {
         });
         if (userResponse.ok) {
           const userData = await userResponse.json();
-          setIsOwnProfile(userData.id === parseInt(params.id));
+          // Corrige comparação para funcionar com string ou número
+          setIsOwnProfile(userData.id == params.id);
         }
       } catch (err) {
         setError(err.message);
@@ -109,7 +112,7 @@ export default function PlayerPage() {
       (playerConfigs.sensitivity !== null && playerConfigs.sensitivity !== undefined) ||
       (playerConfigs.dpi !== null && playerConfigs.dpi !== undefined) ||
       (playerConfigs.edpi !== null && playerConfigs.edpi !== undefined) ||
-      (playerConfigs.hz !== null && playerConfigs.hz !== undefined) ||
+      (playerConfigs.video_settings.refresh_rate !== null && playerConfigs.video_settings.refresh_rate !== undefined) ||
       (playerConfigs.crosshair_code && playerConfigs.crosshair_code.trim() !== '') ||
       (playerConfigs.skins && typeof playerConfigs.skins === 'string' && playerConfigs.skins.trim() !== '')
     );
@@ -167,7 +170,7 @@ export default function PlayerPage() {
             return /^[A-Z]{2}$/.test(code) ? code : null;
           })()
         }}
-        footerText={teamData?.name ? teamData.name.toUpperCase() : "Development"}
+        footerText={teamData?.name ? teamData.name.toUpperCase() : "BETA"}
         fullPage={true}
       >
         {error && (
@@ -197,8 +200,6 @@ export default function PlayerPage() {
                   className="shadow-lg mx-auto mb-4"
                 />
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
-                  <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={40} />
                   {isOwnProfile && (
                     <img 
                       src="/others/aero.png" 
@@ -207,6 +208,8 @@ export default function PlayerPage() {
                       title="Você"
                     />
                   )}
+                  <h1 className="text-2xl font-semibold text-gray-800">{playerData.name}</h1>
+                  <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={40} />
                   {/* Ícone de informação com tooltip da última atualização */}
                   <div className="relative group">
                     <svg 
@@ -239,6 +242,7 @@ export default function PlayerPage() {
                   />
                 </div>
                 
+
                 <div className="flex items-center justify-center gap-4 mb-6">
                   {profileUrls.steam && (
                     <a 
@@ -246,19 +250,35 @@ export default function PlayerPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      title={`${playerData.name} Steam`}
                     >
                       <img src="/platforms/steam.svg" alt="Steam" className="w-4 h-4" />
                     </a>
                   )}
+
+
+                  {/* Botão Faceit - obtém url via API Faceit */}
+                  {faceitData && faceitData.nickname && (
+                    <a
+                      href={`https://www.faceit.com/pt/players/${faceitData.nickname}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      title={`${playerData.name} FACEIT`}
+                    >
+                      <img src="/platforms/faceit.svg" alt="Faceit" className="w-4 h-4" />
+                    </a>
+                  )}
+
                   {isOwnProfile && (
                     <Link 
                       href="/profile"
-                      className="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                       </svg>
-                      Editar Perfil
+                      Editar
                     </Link>
                   )}
                 </div>
@@ -307,10 +327,18 @@ export default function PlayerPage() {
                   <div className="flex justify-between items-center gap-x-2">
                     <span className="text-gray-600 min-w-[90px] truncate">País</span>
                     <div className="flex items-center gap-2">
-                      <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={20} />
-                      <CountryName countryCode={playerData.country} className="font-medium text-gray-800" />
+                      <CountryFlag countryCode={playerData.country} size="w-6 h-4" flagSize={40} />
                     </div>
                   </div>
+                  
+                  {teamData && (
+                    <div className="flex justify-between items-center gap-x-2">
+                      <span className="text-gray-600 min-w-[90px] truncate">Time</span>
+                        <div className="flex items-center gap-2">
+                          <a href={`/team/${teamData.id}`} className="font-medium text-gray-800 hover:underline transition-colors">{teamData.name}</a>
+                        </div>
+                    </div>
+                  )}
                   {age && (
                     <div className="flex justify-between items-center gap-x-2">
                       <span className="text-gray-600 min-w-[90px] truncate">Idade</span>
@@ -340,13 +368,18 @@ export default function PlayerPage() {
                     </div>
                   )}
                   {!faceitLoading && !faceitError && faceitData && faceitData.level > 0 && (
-                    <div className="flex justify-between items-center gap-x-2">
-                      <span className="text-gray-600 min-w-[90px] truncate">FACEIT Level</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{faceitData.elo} ELO</span>
-                        <span className="font-semibold text-gray-800">{faceitData.level}</span>
+                      <div className="flex justify-between items-center gap-x-2">
+                        <span className="text-gray-600 min-w-[90px] truncate">FACEIT Level</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">{faceitData.elo} ELO</span>
+                          <img
+                            src={`/platforms/faceit-levels/skill_level_${faceitData.level === 10 ? 'max' : faceitData.level}.png`}
+                            alt={`FACEIT Level ${faceitData.level}`}
+                            className="w-7 h-7"
+                            title={`FACEIT Level ${faceitData.level}`}
+                          />
+                        </div>
                       </div>
-                    </div>
                   )}
                   {!faceitLoading && !faceitError && faceitData && faceitData.level === 0 && (
                     <div className="flex justify-between items-center gap-x-2">
@@ -422,7 +455,7 @@ export default function PlayerPage() {
 
               {/* Configurações de Vídeo */}
               {(hasValidValues(playerConfigs?.video_settings, ['resolution', 'brightness']) || 
-                (playerConfigs?.hz !== null && playerConfigs?.hz !== undefined) || 
+                (playerConfigs?.video_settings.refresh_rate !== null && playerConfigs?.video_settings.refresh_rate !== undefined) || 
                 (playerConfigs?.pc_specs?.gpu?.digital_vibrance !== null && playerConfigs?.pc_specs?.gpu?.digital_vibrance !== undefined)) && (
                 <div className="bg-gray-50 p-5 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">Vídeo</h2>
@@ -439,10 +472,10 @@ export default function PlayerPage() {
                         <span className="font-medium text-gray-800">{formatValue(playerConfigs.video_settings.brightness)}%</span>
                       </div>
                     )}
-                    {(playerConfigs?.hz !== null && playerConfigs?.hz !== undefined) && (
+                    {(playerConfigs?.video_settings.refresh_rate !== null && playerConfigs?.video_settings.refresh_rate !== undefined) && (
                       <div className="flex justify-between items-center gap-x-2">
                         <span className="text-gray-600 min-w-[90px] truncate">Taxa de atualização</span>
-                        <span className="font-medium text-gray-800">{formatValue(playerConfigs.hz)}</span>
+                        <span className="font-medium text-gray-800">{formatValue(playerConfigs.video_settings.refresh_rate)}</span>
                       </div>
                     )}
                     {(playerConfigs?.pc_specs?.gpu?.digital_vibrance !== null && playerConfigs?.pc_specs?.gpu?.digital_vibrance !== undefined) && (
@@ -552,17 +585,37 @@ export default function PlayerPage() {
               )}
 
               {/* Crosshair */}
-              {playerConfigs?.crosshair_code && (
-                <div className="bg-gray-50 p-5 rounded-lg mb-6">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-3">Crosshair</h2>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center gap-x-2">
-                      <span className="text-gray-600 min-w-[90px] truncate">Código</span>
-                      <span className="font-medium text-gray-800 text-xs break-all">{playerConfigs.crosshair_code}</span>
+                {playerConfigs?.crosshair_code && (
+                  <div className="bg-gray-50 p-5 rounded-lg mb-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">Crosshair</h2>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center gap-x-2">
+                        <span className="text-gray-600 min-w-[90px] truncate">Código</span>
+                        <div className="flex items-center gap-1 justify-end w-full">
+                          <span className="font-medium text-gray-800 text-xs break-all">{playerConfigs.crosshair_code}</span>
+                          <button
+                            type="button"
+                            className="ml-1 p-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors relative cursor-pointer"
+                            title="Copiar"
+                            onClick={() => {
+                              navigator.clipboard.writeText(playerConfigs.crosshair_code);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 1200);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <rect x="9" y="9" width="13" height="13" rx="2" fill="none" stroke="currentColor" />
+                              <rect x="3" y="3" width="13" height="13" rx="2" fill="none" stroke="currentColor" />
+                            </svg>
+                            {copied && (
+                              <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded shadow">Copiado!</span>
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Skins */}
               {playerConfigs?.skins && typeof playerConfigs.skins === 'string' && playerConfigs.skins.trim() !== '' && (

@@ -15,6 +15,7 @@ import {
   PC_SPECS_SCHEMA,
   getDefaultValues 
 } from '../../utils/configSchemas';
+import { HUD_COLORS } from '../../utils/hudColors';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -25,6 +26,8 @@ export default function ProfilePage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
+  // Estado para dropdown customizado de cor do HUD
+  const [showHudDropdown, setShowHudDropdown] = useState(false);
 
   // Estados para diferentes seções das configurações
   const [personalData, setPersonalData] = useState({
@@ -255,7 +258,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     GamersClub ID
                   </label>
@@ -266,7 +269,7 @@ export default function ProfilePage() {
                     placeholder="Seu ID do GamersClub"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           )}
@@ -320,17 +323,6 @@ export default function ProfilePage() {
               )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Taxa de Atualização (Hz)
-                  </label>
-                  <input
-                    type="number"
-                    value={configs.hz !== null && configs.hz !== undefined ? configs.hz : ''}
-                    onChange={(e) => setConfigs(prev => ({ ...prev, hz: e.target.value === '' ? null : parseInt(e.target.value) }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -346,6 +338,18 @@ export default function ProfilePage() {
                         polling_rate: e.target.value === '' ? null : parseInt(e.target.value)
                       }
                     }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sensibilidade do Zoom
+                  </label>
+                  <input
+                    type="number"
+                    value={configs.mouse_settings.zoom_sensitivity !== null && configs.mouse_settings.zoom_sensitivity !== undefined ? configs.mouse_settings.zoom_sensitivity : ''}
+                    onChange={(e) => setConfigs(prev => ({ ...prev, mouse_settings: { ...prev.mouse_settings, zoom_sensitivity: e.target.value === '' ? null : parseInt(e.target.value) } }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -369,11 +373,11 @@ export default function ProfilePage() {
                   rows="3"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Você pode obter o código da crosshair no jogo ou em sites como crosshair-generator.com
+                  Você pode obter o código da crosshair nas configurações do jogo
                 </p>
               </div>
               
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Skins Favoritas
                 </label>
@@ -384,7 +388,7 @@ export default function ProfilePage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   rows="4"
                 />
-              </div>
+              </div> */}
             </div>
           )}
 
@@ -515,10 +519,53 @@ export default function ProfilePage() {
                     <option value="1024x768">1024x768</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Modo de exibição da tela
+                  </label>
+                  <select
+                    value={configs.video_settings.display_mode || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        display_mode: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecionar modo de exibição</option>
+                    <option value="Tela cheia">Tela cheia</option>
+                    <option value="Modo janela">Modo janela</option>
+                    <option value="Tela cheia sem bordas">Tela cheia sem bordas</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Modo de escala
+                  </label>
+                  <select
+                    value={configs.video_settings.scaling_mode || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        scaling_mode: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecionar modo de escala</option>
+                    <option value="Esticado">Esticado</option>
+                    <option value="Black Bars">Black Bars</option>
+                  </select>
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Aspect Ratio
+                    Proporção
                   </label>
                   <select
                     value={configs.video_settings.aspect_ratio || ''}
@@ -540,7 +587,7 @@ export default function ProfilePage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Brilho
+                    Brilho (%)
                   </label>
                   <input
                     type="number"
@@ -560,7 +607,7 @@ export default function ProfilePage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    FPS Máximo
+                    MAX FPS
                   </label>
                   <input
                     type="number"
@@ -577,12 +624,31 @@ export default function ProfilePage() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    HDR
+                    Sombras Dinâmicas
+                  </label>
+                  <select
+                    value={configs.video_settings.dynamicshadows || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        dynamicshadows: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Sun Only">Sun Only</option>
+                    <option value="All">All</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    High Dynamic Range
                   </label>
                   <select
                     value={configs.video_settings.hdr || ''}
@@ -596,15 +662,195 @@ export default function ProfilePage() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Selecione...</option>
-                    <option value="disabled">disabled</option>
-                    <option value="performance">performance</option>
-                    <option value="quality">quality</option>
+                    <option value="Performance">Performance</option>
+                    <option value="Quality">Quality</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NVIDIA Reflex Low Latency
+                  </label>
+                  <select
+                    value={configs.video_settings.nvidiareflexll || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        nvidiareflexll: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Disabled">Disabled</option>
+                    <option value="Enabled">Enabled</option>
+                    <option value="Enabled + Boost">Enabled + Boost</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Particle Detail
+                  </label>
+                  <select
+                    value={configs.video_settings.particle_detail || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        particle_detail: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Oclusão de Ambiente
+                  </label>
+                  <select
+                    value={configs.video_settings.ambientocclusion || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        ambientocclusion: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Disabled">Disabled</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Enabled">Enabled</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Global Shadow Quality
+                  </label>
+                  <select
+                    value={configs.video_settings.global_shadow_quality || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        global_shadow_quality: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Very High">Very High</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Multisampling Anti-Aliasing Mode
+                  </label>
+                  <select
+                    value={configs.video_settings.multisampling_anti_aliasing_mode || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        multisampling_anti_aliasing_mode: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="CMAA2">CMAA2</option>
+                    <option value="2x MSAA">2x MSAA</option>
+                    <option value="4x MSAA">4x MSAA</option>
+                    <option value="8x MSAA">8x MSAA</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Modo de Filtragem de Textura
+                  </label>
+                  <select
+                    value={configs.video_settings.texture_filtering_mode || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        texture_filtering_mode: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Bilinear">Bilinear</option>
+                    <option value="Trilinear">Trilinear</option>
+                    <option value="Anisotropic 2x">Anisotropic 2x</option>
+                    <option value="Anisotropic 4x">Anisotropic 4x</option>
+                    <option value="Anisotropic 8x">Anisotropic 8x</option>
+                    <option value="Anisotropic 16x">Anisotropic 16x</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Boost Player Contrast
+                  </label>
+                  <select
+                    value={configs.video_settings.boostplayercontrast || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        boostplayercontrast: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value={false}>Desativado</option>
+                    <option value={true}>Ativado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Model / Texture Detail
+                  </label>
+                  <select
+                    value={configs.video_settings.model_texture_detail || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        model_texture_detail: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
                   </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    FFX-SR
+                    Fidelity FX-Super Resolution
                   </label>
                   <select
                     value={configs.video_settings.ffxsr || ''}
@@ -618,30 +864,90 @@ export default function ProfilePage() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Selecione...</option>
-                    <option value="disabled">disabled</option>
-                    <option value="performance">performance</option>
-                    <option value="quality">quality</option>
+                    <option value="Performance">Performance</option>
+                    <option value="Balanced">Balanced</option>
+                    <option value="Quality">Quality</option>
+                    <option value="Ultra Quality">Ultra Quality</option>
+                    <option value="Disabled (Highest Quality)">Disabled (Highest Quality)</option>
                   </select>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                
+
                 <div>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={configs.video_settings.vsync || false}
-                      onChange={(e) => setConfigs(prev => ({ 
-                        ...prev, 
-                        video_settings: { 
-                          ...prev.video_settings, 
-                          vsync: e.target.checked 
-                        }
-                      }))}
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700">VSync</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shader Detail
                   </label>
+                  <select
+                    value={configs.video_settings.shader_detail || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        shader_detail: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Low">Low</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Taxa de Atualização do Monitor (hz)
+                  </label>
+                  <input
+                    type="number"
+                    value={configs.video_settings.refresh_rate !== null && configs.video_settings.refresh_rate !== undefined ? configs.video_settings.refresh_rate : ''}
+                    onChange={(e) => setConfigs(prev => ({ ...prev, video_settings: { ...prev.video_settings, refresh_rate: e.target.value === '' ? null : parseInt(e.target.value) } }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    V-Sync
+                  </label>
+                  <select
+                    value={configs.video_settings.vsync || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        vsync: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value={false}>Disabled</option>
+                    <option value={true}>Enabled</option>
+                  </select>
+                </div>
+
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NVIDIA G-Sync
+                  </label>
+                  <select
+                    value={configs.video_settings.nvidiagsync || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      video_settings: { 
+                        ...prev.video_settings, 
+                        nvidiagsync: e.target.value || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value={false}>Disabled</option>
+                    <option value={true}>Enabled</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -690,7 +996,6 @@ export default function ProfilePage() {
                     <option value="">Selecionar preset</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
-                    <option value="3">3</option>
                   </select>
                 </div>
               </div>
@@ -792,27 +1097,58 @@ export default function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cor do HUD
                   </label>
-                  <select
-                    value={configs.hud_settings.cl_hud_color || ''}
-                    onChange={(e) => setConfigs(prev => ({ 
-                      ...prev, 
-                      hud_settings: { 
-                        ...prev.hud_settings, 
-                        cl_hud_color: e.target.value || null 
-                      }
-                    }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Selecionar cor</option>
-                    {[...Array(11)].map((_, i) => (
-                      <option key={i} value={i.toString()}>{i}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+                      onClick={() => setShowHudDropdown((prev) => !prev)}
+                    >
+                      <span className="flex items-center gap-2">
+                        {configs.hud_settings.cl_hud_color !== '' && HUD_COLORS[configs.hud_settings.cl_hud_color] ? (
+                          <span
+                            className="inline-block w-4 h-4 rounded-full border border-gray-300"
+                            style={{ backgroundColor: HUD_COLORS[configs.hud_settings.cl_hud_color].colorValue }}
+                          ></span>
+                        ) : null}
+                        {configs.hud_settings.cl_hud_color !== '' && HUD_COLORS[configs.hud_settings.cl_hud_color] ? HUD_COLORS[configs.hud_settings.cl_hud_color].name : 'Selecionar cor'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    {showHudDropdown && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                        {Object.entries(HUD_COLORS).map(([key, value]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-blue-50 ${configs.hud_settings.cl_hud_color === key ? 'bg-blue-100' : ''}`}
+                            onClick={() => {
+                              setConfigs(prev => ({
+                                ...prev,
+                                hud_settings: {
+                                  ...prev.hud_settings,
+                                  cl_hud_color: key
+                                }
+                              }));
+                              setShowHudDropdown(false);
+                            }}
+                          >
+                            <span
+                              className="inline-block w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: value.colorValue }}
+                            ></span>
+                            <span>{value.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Dropdown state */}
+                  {/* ...existing code... */}
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Escala do Radar
+                    Radar Map Zoom
                   </label>
                   <input
                     type="number"
@@ -825,6 +1161,27 @@ export default function ProfilePage() {
                       hud_settings: { 
                         ...prev.hud_settings, 
                         cl_radar_scale: parseFloat(e.target.value) || null 
+                      }
+                    }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Radar Hud Size
+                  </label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    min="0.25"
+                    max="1.0"
+                    value={configs.hud_settings.cl_hud_radar_scale || ''}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      hud_settings: { 
+                        ...prev.hud_settings, 
+                        cl_hud_radar_scale: parseFloat(e.target.value) || null 
                       }
                     }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -846,7 +1203,23 @@ export default function ProfilePage() {
                     }))}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium text-gray-700">Radar Rotaciona</span>
+                  <span className="text-sm font-medium text-gray-700">Radar is Rotating</span>
+                </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={configs.hud_settings.cl_radar_square_with_scoreboard || false}
+                    onChange={(e) => setConfigs(prev => ({ 
+                      ...prev, 
+                      hud_settings: { 
+                        ...prev.hud_settings, 
+                        cl_radar_square_with_scoreboard: e.target.checked 
+                      }
+                    }))}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Toggle Shape With Scoreboard</span>
                 </label>
                 
                 <label className="flex items-center">
@@ -862,7 +1235,7 @@ export default function ProfilePage() {
                     }))}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium text-gray-700">Radar Sempre Centralizado</span>
+                  <span className="text-sm font-medium text-gray-700">Radar Centers The Player</span>
                 </label>
               </div>
             </div>

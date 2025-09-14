@@ -5,33 +5,32 @@ export const MOUSE_SETTINGS_SCHEMA = {
   mousepad: { type: 'string', label: 'Mousepad' },
   dpi: { type: 'number', label: 'DPI', min: 100, max: 10000 },
   sensitivity: { type: 'number', label: 'Sensibilidade', min: 0.1, max: 10, step: 0.01 },
-  polling_rate: { type: 'number', label: 'Taxa de Polling (Hz)', min: 125, max: 8000 },
-  windows_sens: { type: 'number', label: 'Sensibilidade Windows', min: 1, max: 11, step: 1 },
+  polling_rate: { type: 'number', label: 'Polling Rate', min: 125, max: 8000 },
   zoom_sensitivity: { type: 'number', label: 'Sensibilidade do Zoom', min: 0.1, max: 5, step: 0.01 }
 };
 
 export const VIDEO_SETTINGS_SCHEMA = {
   resolution: { type: 'select', label: 'Resolução', options: ['1920x1080', '1440x1080', '1280x960', '1024x768'] },
   aspect_ratio: { type: 'select', label: 'Aspect Ratio', options: ['16:9', '4:3', '16:10'] },
-  display_mode: { type: 'select', label: 'Modo de Exibição', options: ['Fullscreen', 'Windowed', 'Fullscreen Windowed'] },
-  refresh_rate: { type: 'number', label: 'Taxa de Atualização (Hz)', min: 60, max: 360 },
+  display_mode: { type: 'select', label: 'Modo de Exibição', options: ['Tela cheia', 'Modo janela', 'Tela cheia sem bordas'] },
+  scaling_mode: { type: 'select', label: 'Modo de Escala', options: ['Esticado', 'Black Bars'] },
   brightness: { type: 'number', label: 'Brilho', min: 0, max: 100 },
   maxfps: { type: 'number', label: 'FPS Máximo', min: 60, max: 999 },
-  vsync: { type: 'boolean', label: 'VSync' },
-  hdr: { type: 'select', label: 'HDR', options: ['disabled', 'performance', 'quality'] },
-  ffxsr: { type: 'select', label: 'FFX-SR', options: ['disabled', 'performance', 'quality'] },
-  nvidiagsync: { type: 'boolean', label: 'NVIDIA G-Sync' },
-  nvidiareflexll: { type: 'boolean', label: 'NVIDIA Reflex Low Latency' },
-  scaling_mode: { type: 'select', label: 'Modo de Escalonamento', options: ['Native', 'Stretched', 'Black Bars'] },
-  shader_detail: { type: 'select', label: 'Detalhes do Shader', options: ['Low', 'Medium', 'High', 'Very High'] },
-  model_texture_detail: { type: 'select', label: 'Detalhes da Textura', options: ['Low', 'Medium', 'High', 'Very High'] },
-  particle_detail: { type: 'select', label: 'Detalhes das Partículas', options: ['Low', 'Medium', 'High', 'Very High'] },
-  global_shadow_quality: { type: 'select', label: 'Qualidade das Sombras', options: ['Low', 'Medium', 'High', 'Very High'] },
-  dynamicshadows: { type: 'boolean', label: 'Sombras Dinâmicas' },
-  texture_filtering_mode: { type: 'select', label: 'Filtragem de Textura', options: ['Bilinear', 'Trilinear', 'Anisotropic 2x', 'Anisotropic 4x', 'Anisotropic 8x', 'Anisotropic 16x'] },
-  multisampling_anti_aliasing_mode: { type: 'select', label: 'Anti-Aliasing', options: ['None', '2x MSAA', '4x MSAA', '8x MSAA', 'FXAA'] },
-  ambientocclusion: { type: 'boolean', label: 'Ambient Occlusion' },
-  boostplayercontrast: { type: 'boolean', label: 'Boost Player Contrast' }
+  dynamicshadows: { type: 'select', label: 'Sombras Dinâmicas', options: ['Sun Only', 'All'] },
+  hdr: { type: 'select', label: 'HDR', options: ['Performance', 'Quality'] },
+  nvidiareflexll: { type: 'select', label: 'NVIDIA Reflex Low Latency', options: ['Disabled', 'Enabled', 'Enabled + Boost'] },
+  particle_detail: { type: 'select', label: 'Particle Detail', options: ['Low', 'Medium', 'High'] },
+  ambientocclusion: { type: 'select', label: 'Oclusão de Ambiente', options: ['Disabled', 'Medium', 'Enabled'] },
+  global_shadow_quality: { type: 'select', label: 'Global Shadow Quality', options: ['Low', 'Medium', 'High', 'Very High'] },
+  multisampling_anti_aliasing_mode: { type: 'select', label: 'Multisampling Anti-Aliasing Mode', options: ['CMAA2', '2x MSAA', '4x MSAA', '8x MSAA'] },
+  texture_filtering_mode: { type: 'select', label: 'Modo de Filtragem de Textura', options: ['Bilinear', 'Trilinear', 'Anisotropic 2x', 'Anisotropic 4x', 'Anisotropic 8x', 'Anisotropic 16x'] },
+  boostplayercontrast: { type: 'select', label: 'Boost Player Contrast', options: [false, true] },
+  model_texture_detail: { type: 'select', label: 'Model / Texture Detail', options: ['Low', 'Medium', 'High'] },
+  ffxsr: { type: 'select', label: 'Fidelity FX-Super Resolution', options: ['Performance', 'Balanced', 'Quality', 'Ultra Quality', 'Disabled (Highest Quality)'] },
+  shader_detail: { type: 'select', label: 'Shader Detail', options: ['Low', 'High'] },
+  refresh_rate: { type: 'number', label: 'Taxa de Atualização do Monitor (hz)', min: 60, max: 1000 },
+  vsync: { type: 'select', label: 'V-Sync', options: [false, true] },
+  nvidiagsync: { type: 'select', label: 'NVIDIA G-Sync', options: [false, true] }
 };
 
 export const VIEWMODEL_SETTINGS_SCHEMA = {
@@ -46,11 +45,11 @@ export const VIEWMODEL_SETTINGS_SCHEMA = {
 export const HUD_SETTINGS_SCHEMA = {
   hud_scaling: { type: 'number', label: 'HUD Scaling', min: 0.5, max: 1.0, step: 0.05 },
   cl_hud_color: { type: 'select', label: 'Cor do HUD', options: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
-  cl_radar_scale: { type: 'number', label: 'Escala do Radar', min: 0.25, max: 1.0, step: 0.05 },
-  cl_radar_rotate: { type: 'boolean', label: 'Radar Rotaciona' },
-  cl_hud_radar_scale: { type: 'number', label: 'Escala do Mini-Radar', min: 0.8, max: 1.3, step: 0.05 },
-  cl_radar_always_centered: { type: 'boolean', label: 'Radar Sempre Centralizado' },
-  cl_radar_square_with_scoreboard: { type: 'boolean', label: 'Radar Quadrado com Scoreboard' }
+  cl_radar_scale: { type: 'number', label: 'Radar Map Zoom', min: 0.25, max: 1.0, step: 0.05 },
+  cl_hud_radar_scale: { type: 'number', label: 'Radar Hud Size', min: 0.8, max: 1.3, step: 0.05 },
+  cl_radar_rotate: { type: 'boolean', label: 'Radar is Rotating' },
+  cl_radar_square_with_scoreboard: { type: 'boolean', label: 'Toggle Shape With Scoreboard' },
+  cl_radar_always_centered: { type: 'boolean', label: 'Radar Centers The Player' }
 };
 
 export const GEAR_SPECS_SCHEMA = {
@@ -59,7 +58,9 @@ export const GEAR_SPECS_SCHEMA = {
   keyboard: { type: 'string', label: 'Teclado' },
   headset: { type: 'string', label: 'Headset' },
   earphones: { type: 'string', label: 'Fones de Ouvido' },
-  monitor: { type: 'string', label: 'Monitor' }
+  monitor: { type: 'string', label: 'Monitor' },
+  // Adicionado para casar com profile
+  mouse_cable: { type: 'string', label: 'Cabo do Mouse' }
 };
 
 export const PC_SPECS_SCHEMA = {
@@ -67,7 +68,10 @@ export const PC_SPECS_SCHEMA = {
   gpu: {
     gpu_card: { type: 'string', label: 'Placa de Vídeo' },
     digital_vibrance: { type: 'number', label: 'Vibrance Digital (%)', min: 0, max: 100 }
-  }
+  },
+  // Adicionado para casar com profile
+  ram: { type: 'string', label: 'Memória RAM' },
+  ssd: { type: 'string', label: 'SSD' }
 };
 
 export const ROLE_OPTIONS = [

@@ -182,10 +182,9 @@ const SteamAuth = () => {
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900 truncate">{displayName}</div>
                   <div 
-                    className="text-xs font-bold px-2 py-1 rounded-full inline-block mt-1"
+                    className="text-xs font-bold inline-block"
                     style={{ 
-                      color: membershipColor, 
-                      backgroundColor: membershipBgColor 
+                      color: membershipColor
                     }}
                   >
                     {membershipName.toUpperCase()}
@@ -195,12 +194,12 @@ const SteamAuth = () => {
               <div className="space-y-2 mb-3">
                 <a
                   href={`/player/${user.id}`}
-                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                  className="w-full bg-gray-100 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
                   </svg>
-                  Meu Perfil
+                  Perfil
                 </a>
               </div>
               <button
