@@ -120,12 +120,25 @@ export default function ProfilePage() {
     setError(null);
     
     try {
+      // Garantir que hud_settings sempre tenha todos os campos
+      const hudDefaults = {
+        hud_scaling: null,
+        cl_hud_color: '',
+        cl_radar_scale: null,
+        cl_hud_radar_scale: null,
+        cl_radar_rotate: false,
+        cl_radar_square_with_scoreboard: false,
+        cl_radar_always_centered: false
+      };
+      const hud_settings = { ...hudDefaults, ...configs.hud_settings };
+
       // Preparar dados para envio
       const updateData = {
         steamid64: currentUser.id,
         birthday: personalData.birthday || null,
         gamersclubid: personalData.gamersclubid || null,
-        ...configs
+        ...configs,
+        hud_settings
       };
 
       const response = await fetch('/api/profile/update', {

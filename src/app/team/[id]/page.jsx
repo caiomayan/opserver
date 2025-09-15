@@ -39,7 +39,7 @@ function PlayerHoverCard({ player }) {
             <CountryFlag 
               countryCode={player.country} 
               size="w-4 h-3"
-              flagSize={20}
+              flagSize={40}
             />
           </div>
           {/* Ícone da role + Faceit logo dinâmico */}

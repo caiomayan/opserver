@@ -77,8 +77,8 @@ const LogoHeader = ({
               <div className="mt-1">
                 <CountryFlag 
                   countryCode={code}
-                  size="w-3 h-2"
-                  flagSize={20}
+                  size="w-4.5 h-3"
+                  flagSize={40}
                 />
               </div>
             ) : null;

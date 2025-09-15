@@ -46,36 +46,70 @@ export async function PUT(request) {
     // Atualizar configurações na tabela player_configs
     const configUpdateData = {};
 
-    // Campos básicos (excluindo edpi que é coluna gerada)
-    if (configData.sensitivity !== undefined) configUpdateData.sensitivity = configData.sensitivity || null;
-    if (configData.dpi !== undefined) configUpdateData.dpi = configData.dpi || null;
-    // edpi é calculado automaticamente pelo banco, não incluir
-    if (configData.hz !== undefined) configUpdateData.hz = configData.hz || null;
-    if (configData.crosshair_code !== undefined) configUpdateData.crosshair_code = configData.crosshair_code || null;
-    if (configData.skins !== undefined) configUpdateData.skins = configData.skins || null;
+    // Helper para ignorar string vazia
+    function validValue(val) {
+      if (val === undefined) return undefined;
+      if (typeof val === 'string' && val.trim() === '') return undefined;
+      return val;
+    }
 
-    // Campos JSONB
-    if (configData.mouse_settings) configUpdateData.mouse_settings = configData.mouse_settings;
-    if (configData.video_settings) configUpdateData.video_settings = configData.video_settings;
-    if (configData.viewmodel_settings) configUpdateData.viewmodel_settings = configData.viewmodel_settings;
-    if (configData.hud_settings) configUpdateData.hud_settings = configData.hud_settings;
-    if (configData.gear_specs) configUpdateData.gear_specs = configData.gear_specs;
-    if (configData.pc_specs) configUpdateData.pc_specs = configData.pc_specs;
+    // Campos básicos (excluindo edpi que é coluna gerada)
+    if (validValue(configData.sensitivity) !== undefined) configUpdateData.sensitivity = configData.sensitivity;
+    if (validValue(configData.dpi) !== undefined) configUpdateData.dpi = configData.dpi;
+    if (validValue(configData.hz) !== undefined) configUpdateData.hz = configData.hz;
+    if (validValue(configData.crosshair_code) !== undefined) configUpdateData.crosshair_code = configData.crosshair_code;
+
+    // skins: converter para JSON se vier como string
+    if (configData.skins !== undefined) {
+      if (typeof configData.skins === 'string' && configData.skins.trim() !== '') {
+        try {
+          configUpdateData.skins = JSON.parse(configData.skins);
+        } catch {
+          configUpdateData.skins = configData.skins; // salva como string se não for JSON
+        }
+      } else if (configData.skins !== null) {
+        configUpdateData.skins = configData.skins;
+      }
+    }
+
+    // Campos JSONB: merge com dados antigos
+    const jsonbFields = ['mouse_settings', 'video_settings', 'viewmodel_settings', 'hud_settings', 'gear_specs', 'pc_specs'];
+
+    // Verificar se já existe uma configuração para este player
+    const { data: existingConfig } = await supabase
+      .from('player_configs')
+      .select('*')
+      .eq('steamid64', steamid64)
+      .single();
+
+    for (const field of jsonbFields) {
+      if (configData[field] !== undefined) {
+        if (existingConfig && existingConfig[field]) {
+          // Merge: sobrescreve apenas os campos enviados
+          configUpdateData[field] = {
+            ...existingConfig[field],
+            ...configData[field]
+          };
+        } else {
+          configUpdateData[field] = configData[field];
+        }
+      }
+    }
 
     if (Object.keys(configUpdateData).length > 0) {
-      // Verificar se já existe uma configuração para este player
-      const { data: existingConfig } = await supabase
-        .from('player_configs')
-        .select('id')
-        .eq('steamid64', steamid64)
-        .single();
-
       if (existingConfig) {
         // Atualizar configuração existente
-        const { error: configError } = await supabase
+        const { data: updateData, error: configError } = await supabase
           .from('player_configs')
           .update(configUpdateData)
           .eq('steamid64', steamid64);
+
+        console.log('Resultado do update player_configs:', {
+          steamid64,
+          configUpdateData,
+          updateData,
+          error: configError
+        });
 
         if (configError) {
           console.error('Erro ao atualizar config:', configError);

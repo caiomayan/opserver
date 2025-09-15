@@ -53,14 +53,13 @@ const Header = () => {
   const isAdminOrOwner = userMembership === 2 || userMembership === 3;
 
   return (
-    <nav className="w-full h-16 flex items-center justify-between px-6">
+    <nav className="w-full h-16 flex items-center justify-between px-5">
       {/* Logo e menu */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-6">
         <Link href="/">
           <img src="/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
         </Link>
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Início</Link>
           <Link href="/teams" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Times</Link>
           <Link href="#" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Jogar</Link>
           <Link href="https://inventory.cstrike.app/" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">Inventário</Link>
@@ -68,8 +67,8 @@ const Header = () => {
           <Link href="/prosettings" className="text-gray-800 font-semibold hover:text-blue-600 transition-colors">ProSettings</Link>
           {/* Link Admin - só aparece para Admin (2) ou Dono (3) */}
           {!loading && isAdminOrOwner && (
-            <Link href="/admin" className="text-red-600 font-semibold hover:text-red-700 transition-colors">
-              Admin
+            <Link href="/admin" className="text-gray-800 font-semibold hover:text-red-800 transition-colors">
+              ADMIN
             </Link>
           )}
         </div>
