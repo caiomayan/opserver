@@ -29,7 +29,6 @@ const ProSettingsPage = () => {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-64px-56px)]">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">ProSettings</h1>
         <div className="flex flex-wrap justify-center gap-8">
           {players.map((player) => (
             <Link 
@@ -61,7 +60,7 @@ const ProSettingsPage = () => {
           </div>
         )}
       </main>
-      <Footer text="Development" />
+      <Footer />
     </>
   );
 };

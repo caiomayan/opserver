@@ -3,8 +3,7 @@ import Footer from './Footer';
 
 const Layout = ({ 
   children, 
-  headerProps = {}, 
-  footerText = "Development",
+  headerProps = {},
   className = "",
   fullPage = false 
 }) => {
@@ -13,7 +12,7 @@ const Layout = ({
       <div className={`min-h-screen bg-white text-black flex flex-col relative ${className}`}>
   <LogoHeader {...headerProps} />
         {children}
-        <Footer text={footerText} />
+        <Footer />
       </div>
     );
   }
@@ -26,7 +25,7 @@ const Layout = ({
         {children}
       </div>
       
-      <Footer text={footerText} />
+      <Footer />
     </div>
   );
 };

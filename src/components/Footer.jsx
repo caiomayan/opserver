@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const Footer = ({ text = "BETA" }) => {
+const Footer = ({ text = "Este projeto é um trabalho em andamento. Todos os direitos reservados." }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

@@ -19,7 +19,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { steamid64, birthday, gamersclubid, ...configData } = body;
+  const { steamid64, birthday, ...configData } = body;
 
     // Verificar se o usuário está editando apenas seu próprio perfil
     if (steamid64 !== currentUser.id) {
@@ -28,8 +28,11 @@ export async function PUT(request) {
 
     // Atualizar dados pessoais na tabela players
     const playerUpdateData = {};
+    if (body.name !== undefined) playerUpdateData.name = body.name;
+    if (body.country !== undefined) playerUpdateData.country = body.country;
     if (birthday !== undefined) playerUpdateData.birthday = birthday;
-    if (gamersclubid !== undefined) playerUpdateData.gamersclubid = gamersclubid;
+    if (body.idrole !== undefined) playerUpdateData.idrole = body.idrole;
+    if (body.benched !== undefined) playerUpdateData.benched = body.benched;
 
     if (Object.keys(playerUpdateData).length > 0) {
       const { error: playerError } = await supabase

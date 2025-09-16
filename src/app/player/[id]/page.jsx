@@ -204,7 +204,7 @@ export default function PlayerPage() {
                     <img 
                       src="/others/aero.png" 
                       alt="Seu Perfil" 
-                      className="w-5 h-5" 
+                      className="w-4 h-4 hover:scale-110 transition-transform" 
                       title="Você"
                     />
                   )}

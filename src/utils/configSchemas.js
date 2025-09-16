@@ -96,6 +96,7 @@ export const MEMBERSHIP_OPTIONS = [
 export const getDefaultValues = (schema) => {
   const defaults = {};
   Object.keys(schema).forEach(key => {
+    if (key === 'gamersclubid') return; // ignora campo gamersclubid
     const field = schema[key];
     if (field.type === 'boolean') {
       defaults[key] = false;

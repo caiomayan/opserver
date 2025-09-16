@@ -31,8 +31,11 @@ export default function ProfilePage() {
 
   // Estados para diferentes seções das configurações
   const [personalData, setPersonalData] = useState({
+    name: '',
+    country: '',
     birthday: '',
-    gamersclubid: ''
+    idrole: 0,
+    benched: false
   });
 
   const [configs, setConfigs] = useState({
@@ -79,8 +82,11 @@ export default function ProfilePage() {
             
             // Preencher dados pessoais
             setPersonalData({
+              name: player.name || '',
+              country: player.country || '',
               birthday: player.birthday || '',
-              gamersclubid: player.gamersclubid || ''
+              idrole: player.idrole ?? 0,
+              benched: player.benched ?? false
             });
             
             // Preencher configurações se existirem
@@ -135,8 +141,13 @@ export default function ProfilePage() {
       // Preparar dados para envio
       const updateData = {
         steamid64: currentUser.id,
+        // Dados pessoais
+        name: personalData.name || null,
+        country: personalData.country || null,
         birthday: personalData.birthday || null,
-        gamersclubid: personalData.gamersclubid || null,
+        idrole: personalData.idrole,
+        benched: personalData.benched,
+        // Configs
         ...configs,
         hud_settings
       };
@@ -257,12 +268,29 @@ export default function ProfilePage() {
           {activeTab === 'personal' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Informações Pessoais</h3>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data de Nascimento
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                  <input
+                    type="text"
+                    value={personalData.name}
+                    onChange={(e) => setPersonalData(prev => ({ ...prev, name: e.target.value.slice(0, 10) }))}
+                    maxLength={10}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">País</label>
+                  <input
+                    type="text"
+                    value={personalData.country}
+                    onChange={(e) => setPersonalData(prev => ({ ...prev, country: e.target.value.toUpperCase().slice(0, 3) }))}
+                    maxLength={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Data de Nascimento</label>
                   <input
                     type="date"
                     value={personalData.birthday}
@@ -270,19 +298,37 @@ export default function ProfilePage() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    GamersClub ID
-                  </label>
-                  <input
-                    type="text"
-                    value={personalData.gamersclubid}
-                    onChange={(e) => setPersonalData(prev => ({ ...prev, gamersclubid: e.target.value }))}
-                    placeholder="Seu ID do GamersClub"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Função (Role)</label>
+                  <select
+                    value={personalData.idrole}
+                    onChange={(e) => setPersonalData(prev => ({ ...prev, idrole: parseInt(e.target.value) }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div> */}
+                  >
+                    <option value={0}>Rifler</option>
+                    <option value={1}>AWPer</option>
+                    <option value={2}>Lurker</option>
+                    <option value={3}>Opener</option>
+                    <option value={4}>IGL</option>
+                    <option value={5}>Support</option>
+                    <option value={6}>Beginner</option>
+                    <option value={7}>Coach</option>
+                  </select>
+                </div>
+                {playerData?.teamid && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Banco do Time</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={personalData.benched}
+                        onChange={(e) => setPersonalData(prev => ({ ...prev, benched: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{personalData.benched ? 'No banco' : 'Ativo'}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
