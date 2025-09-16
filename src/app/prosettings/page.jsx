@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
+import PlayerHoverCard from '../../components/PlayerHoverCard';
 import Footer from '../../components/Footer';
 import SimpleSteamAvatar from '../../components/SimpleSteamAvatar';
 
@@ -28,29 +29,10 @@ const ProSettingsPage = () => {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center min-h-[calc(100vh-64px-56px)]">
-        <div className="flex flex-wrap justify-center gap-8">
+      <main className="flex flex-col items-center justify-center min-h-[calc(100vh-64px-56px)] overflow-visible">
+        <div className="flex flex-wrap justify-center gap-8 overflow-visible relative">
           {players.map((player) => (
-            <Link 
-              key={player.steamid64} 
-              href={`/player/${player.steamid64}`}
-              className="group relative transition-transform duration-200 ease-in-out hover:scale-110"
-            >
-              <SimpleSteamAvatar 
-                src={player.avatar}
-                alt={`Avatar de ${player.name}`}
-                fallbackInitial={player.name.charAt(0).toUpperCase()}
-                size="w-26 h-26"
-                className="shadow-xl group-hover:shadow-2xl transition-shadow duration-200"
-              />
-              <div className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-lg shadow-md px-3 py-2 min-w-[5rem] max-w-[9rem] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                <div className="text-center space-y-1">
-                  <div className="flex items-center justify-center gap-1.5 font-medium text-gray-900 text-sm leading-tight">
-                    <span>{player.name}</span>
-                  </div>
-                </div>
-              </div>
-            </Link>
+            <PlayerHoverCard key={player.steamid64} player={player} />
           ))}
         </div>
         {players.length === 0 && !loading && (
